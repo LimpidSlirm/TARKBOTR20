@@ -1,0 +1,40 @@
+# ============================================================
+#  Keil MDK 编译输出
+# ============================================================
+Project/Objects/
+Project/Listings/
+Project/DebugConfig/
+
+# build.bat / flash.bat 产生的日志
+Project/build.log
+Project/flash.log
+
+# Keil 中间文件与产物
+*.o
+*.d
+*.crf
+*.dep
+*.lnp
+*.axf
+*.map
+*.lst
+*.sct
+*.iex
+*.hex
+*.bin
+*.__i
+*.build_log.htm
+*.htm
+
+# Keil 用户界面布局（每台机器不同，不入库）
+*.uvguix.*
+
+# 厂商资料（有版权，不随源码发布；需要时请自行放置）
+塔克创新*.pdf
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
