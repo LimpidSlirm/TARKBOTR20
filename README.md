@@ -95,13 +95,3 @@ Project\flash.bat            :: 通过 CMSIS-DAP / DAPLink 烧录并复位运行
 
 - `Internal DLL Error` / `Target DLL has been cancelled`：把 DAPLink 拔插一次再重试。
 - `Erase Done. Programming Failed! RDDI-DAP Error`：SWD 时钟过高，把 `xproject.uvoptx` 中的 `<DbgClock>` 从 `10000000` 改为 `1000000` 即可。
-
-## 版本记录
-
-- **V3.02**（2024-09-09）：新版 PS2 手柄接收器摇杆中值由 0x80 改为 0x7F
-- **V3.01**（2023-05-26）：修复 CAN 总线发送 ID 的 BUG
-- **V3.00**（2023-05-09）：硬件升级至 V3.2，增加 PS2 手柄接口与 RGB 灯带专用接口
-
-## 版权声明
-
-源码版权归 **XTARK（塔克创新）** 所有（www.xtark.cn / www.tarkbot.com），本仓库仅用于学习与交流。
