@@ -45,9 +45,17 @@ Robot/                   应用层源码
 ├─ stm32f4xx_it.c/.h     中断服务函数
 └─ system_stm32f4xx.c    系统时钟配置
 
-Project/                 构建脚本
+Driver/                  板级驱动（电机 / 编码器 / 舵机 / IMU / EEPROM / CAN / 串口 / OLED / RGB / PS2 / SBUS）
+FreeRTOS/                FreeRTOS 内核与 Cortex-M4F 移植层
+Doc/                     固件版本说明
+
+Project/                 Keil 工程与构建脚本
+├─ xproject.uvprojx      Keil MDK 工程文件
+├─ xproject.uvoptx       工程调试/下载配置
 ├─ build.bat             无头编译
 └─ flash.bat             无头烧录（CMSIS-DAP / DAPLink）
+
+Libraries/               CMSIS + STM32F4xx 标准外设库（不在本仓库，需自行放入）
 ```
 
 ## 任务划分（FreeRTOS）
@@ -77,7 +85,7 @@ Project/                 构建脚本
 
 ## 编译与烧录
 
-> **注意**：本仓库只包含**应用层**代码。`Driver/`（板级驱动）、`FreeRTOS/`（内核与移植层）、`Libraries/`（CMSIS + STM32F4xx 标准外设库）以及 Keil 工程文件（`xproject.uvprojx`）均未包含，需要放回完整工程后才能编译。
+> **注意**：本仓库不包含 `Libraries/`（CMSIS + STM32F4xx 标准外设库，体积较大，已加入 `.gitignore`），编译前需自行放入完整工程的 `Libraries/` 目录。`Robot/`、`Driver/`、`FreeRTOS/` 与 Keil 工程文件均已包含。
 
 开发环境：Keil MDK 5.x（脚本按 `D:\Keil_v5` 编写，请按实际安装路径修改脚本首行的 `UV4`）。
 
