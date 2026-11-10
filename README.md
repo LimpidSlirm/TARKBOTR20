@@ -32,24 +32,39 @@
 ## 目录结构
 
 ```
-Robot/                   应用层源码
-├─ main.c                主函数：外设初始化、开机自检、创建 FreeRTOS 任务
-├─ ax_robot.c/.h         全局变量与任务（机器人控制 / 按键 / 灯效 / 显示 / PS2 / 琐事）
-├─ ax_kinematics.c/.h    运动学正逆解（按 ROBOT_TYPE 条件编译）
-├─ ax_control.c/.h       PS2 手柄、蓝牙 APP、SBUS 遥控指令解析
-├─ ax_speed.c/.h         四路轮子 PID 速度闭环
-├─ ax_light.c/.h         RGB 灯效（单色 / 呼吸 / 彩色 / 警灯 / 眼睛 / 跑马灯）
-├─ ax_akm.c/.h           阿克曼转向角解算
-├─ FreeRTOSConfig.h      FreeRTOS 配置
-├─ stm32f4xx_conf.h      STM32 标准外设库配置
-├─ stm32f4xx_it.c/.h     中断服务函数
-└─ system_stm32f4xx.c    系统时钟配置
+Robot/                        应用层源码
+├─ main.c                     主函数：外设初始化、开机自检、创建 FreeRTOS 任务
+├─ ax_robot.c/.h              全局变量与任务（机器人控制 / 按键 / 灯效 / 显示 / PS2 / 琐事）
+├─ ax_kinematics.c/.h         运动学正逆解（按 ROBOT_TYPE 条件编译）
+├─ ax_control.c/.h            PS2 手柄、蓝牙 APP、SBUS 遥控指令解析
+├─ ax_speed.c/.h              四路轮子 PID 速度闭环
+├─ ax_light.c/.h              RGB 灯效（单色 / 呼吸 / 彩色 / 警灯 / 眼睛 / 跑马灯）
+├─ ax_akm.c/.h                阿克曼转向角解算
+├─ FreeRTOSConfig.h           FreeRTOS 配置
+├─ stm32f4xx_conf.h           STM32 标准外设库配置
+├─ stm32f4xx_it.c/.h          中断服务函数
+├─ system_stm32f4xx.c         系统时钟配置
+└─ modules/                   扩展业务模块
+   ├─ ramp/   ax_ramp.c/.h                        加减速斜坡
+   ├─ turn/   ax_turn.c/.h, turn_control.c/.h     转向控制
+   └─ key/    key_module.c/.h, key_gpio_tarkbot.c 按键模块
 
-Project/                 构建脚本
-├─ build.bat             无头编译
-├─ flash.bat             无头烧录（CMSIS-DAP / DAPLink）
-└─ keilkilll.bat         清理 Keil 编译中间文件
+Project/                       Keil 工程与构建脚本
+├─ build.bat                  无头编译
+├─ flash.bat                  无头烧录（CMSIS-DAP / DAPLink）
+└─ keilkilll.bat              清理 Keil 编译中间文件
+
+tests/                         主机侧单元测试（不参与固件编译）
+├─ run_tests.py                编译并运行 turn_control.c 的算法断言
+├─ test_turn_control.c         测试用例
+└─ robot_integration_results.json
+
+文件结构规范.md                 目录组织、命名、工程维护等约定
+按键接入说明.md                 按键模块接入文档
+转向接入说明.md                 转向模块接入文档
 ```
+
+详细的目录职责、命名约定与工程维护规则见 [文件结构规范.md](./文件结构规范.md)。
 
 ## 任务划分（FreeRTOS）
 

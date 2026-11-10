@@ -9,6 +9,13 @@ Project/DebugConfig/
 Project/build.log
 Project/flash.log
 
+# tests/run_tests.py 的主机测试输出
+.build/
+tests/*.exe
+tests/*.obj
+tests/*.pdb
+tests/*.ilk
+
 # Keil 中间文件与产物
 *.o
 *.d
@@ -38,18 +45,3 @@ Project/flash.log
 *.swp
 Thumbs.db
 desktop.ini
-
-# ============================================================
-#  厂商库（CMSIS + STM32F4xx 标准外设库）不入库
-# ============================================================
-Libraries/
-
-# ============================================================
-#  仓库只保留 Robot/ 与构建脚本，以下仅本地保留
-# ============================================================
-Doc/
-Driver/
-FreeRTOS/
-Project/*.uvprojx
-Project/*.uvoptx
-Project/EventRecorderStub.scvd
