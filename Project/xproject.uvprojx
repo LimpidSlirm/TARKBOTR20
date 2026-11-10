@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\CMSIS\Include;..\FreeRTOS\include;..\FreeRTOS\port\RVDS\ARM_CM4F;..\Driver;..\Robot;..\Driver\ax_oled;..\Robot\modules\ramp;..\Robot\modules\turn;..\Robot\modules\key</IncludePath>
+              <IncludePath>..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\CMSIS\Include;..\FreeRTOS\include;..\FreeRTOS\port\RVDS\ARM_CM4F;..\Driver;..\Robot;..\Driver\ax_oled;..\Robot\app;..\Robot\control;..\Robot\platform;..\Robot\modules\light;..\Robot\modules\ramp;..\Robot\modules\turn;..\Robot\modules\key</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -386,52 +386,52 @@
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\main.c</FilePath>
+              <FilePath>..\Robot\app\main.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_it.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\stm32f4xx_it.c</FilePath>
+              <FilePath>..\Robot\platform\stm32f4xx_it.c</FilePath>
             </File>
             <File>
               <FileName>system_stm32f4xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\system_stm32f4xx.c</FilePath>
+              <FilePath>..\Robot\platform\system_stm32f4xx.c</FilePath>
             </File>
             <File>
               <FileName>FreeRTOSConfig.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\Robot\FreeRTOSConfig.h</FilePath>
+              <FilePath>..\Robot\platform\FreeRTOSConfig.h</FilePath>
             </File>
             <File>
               <FileName>ax_robot.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\ax_robot.c</FilePath>
+              <FilePath>..\Robot\app\ax_robot.c</FilePath>
             </File>
             <File>
               <FileName>ax_speed.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\ax_speed.c</FilePath>
+              <FilePath>..\Robot\control\ax_speed.c</FilePath>
             </File>
             <File>
               <FileName>ax_light.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\ax_light.c</FilePath>
+              <FilePath>..\Robot\modules\light\ax_light.c</FilePath>
             </File>
             <File>
               <FileName>ax_kinematics.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\ax_kinematics.c</FilePath>
+              <FilePath>..\Robot\control\ax_kinematics.c</FilePath>
             </File>
             <File>
               <FileName>ax_control.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\ax_control.c</FilePath>
+              <FilePath>..\Robot\control\ax_control.c</FilePath>
             </File>
             <File>
               <FileName>ax_akm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Robot\ax_akm.c</FilePath>
+              <FilePath>..\Robot\control\ax_akm.c</FilePath>
             </File>
             <File>
               <FileName>ax_ramp.c</FileName>

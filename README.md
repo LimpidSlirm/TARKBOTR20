@@ -33,21 +33,24 @@
 
 ```
 Robot/                        应用层源码
-├─ main.c                     主函数：外设初始化、开机自检、创建 FreeRTOS 任务
-├─ ax_robot.c/.h              全局变量与任务（机器人控制 / 按键 / 灯效 / 显示 / PS2 / 琐事）
-├─ ax_kinematics.c/.h         运动学正逆解（按 ROBOT_TYPE 条件编译）
-├─ ax_control.c/.h            PS2 手柄、蓝牙 APP、SBUS 遥控指令解析
-├─ ax_speed.c/.h              四路轮子 PID 速度闭环
-├─ ax_light.c/.h              RGB 灯效（单色 / 呼吸 / 彩色 / 警灯 / 眼睛 / 跑马灯）
-├─ ax_akm.c/.h                阿克曼转向角解算
-├─ FreeRTOSConfig.h           FreeRTOS 配置
-├─ stm32f4xx_conf.h           STM32 标准外设库配置
-├─ stm32f4xx_it.c/.h          中断服务函数
-├─ system_stm32f4xx.c         系统时钟配置
-└─ modules/                   扩展业务模块
-   ├─ ramp/   ax_ramp.c/.h                        加减速斜坡
-   ├─ turn/   ax_turn.c/.h, turn_control.c/.h     转向控制
-   └─ key/    key_module.c/.h, key_gpio_tarkbot.c 按键模块
+├─ app/                       应用入口与任务编排
+│  ├─ main.c/.h               主函数：外设初始化、开机自检、创建 FreeRTOS 任务
+│  └─ ax_robot.c/.h           全局变量与任务（机器人控制 / 按键 / 灯效 / 显示 / PS2 / 琐事）
+├─ control/                   运动控制
+│  ├─ ax_kinematics.c/.h      运动学正逆解（按 ROBOT_TYPE 条件编译）
+│  ├─ ax_speed.c/.h           四路轮子 PID 速度闭环
+│  ├─ ax_control.c/.h         PS2 手柄、蓝牙 APP、SBUS 遥控指令解析
+│  └─ ax_akm.c/.h             阿克曼转向角解算
+├─ modules/                   功能模块
+│  ├─ light/ ax_light.c/.h                        RGB 灯效（单色 / 呼吸 / 彩色 / 警灯 / 眼睛 / 跑马灯）
+│  ├─ ramp/  ax_ramp.c/.h                         加减速斜坡
+│  ├─ turn/  ax_turn.c/.h, turn_control.c/.h      转向控制
+│  └─ key/   key_module.c/.h, key_gpio_tarkbot.c  按键模块
+└─ platform/                  芯片与系统配置
+   ├─ FreeRTOSConfig.h        FreeRTOS 配置
+   ├─ stm32f4xx_conf.h        STM32 标准外设库配置
+   ├─ stm32f4xx_it.c/.h       中断服务函数
+   └─ system_stm32f4xx.c      系统时钟配置
 
 Project/                       Keil 工程与构建脚本
 ├─ build.bat                  无头编译
@@ -93,7 +96,7 @@ tests/                         主机侧单元测试（不参与固件编译）
 
 ## 编译与烧录
 
-> **注意**：本仓库只包含**应用层代码**与构建脚本。`Driver/`（板级驱动）、`FreeRTOS/`（内核与移植层）、`Libraries/`（CMSIS + STM32F4xx 标准外设库）以及 Keil 工程文件（`xproject.uvprojx`）均未包含，需放回完整工程后才能编译。
+> 仓库已包含完整可编译工程：`Robot/`（应用层）、`Driver/`（板级驱动）、`FreeRTOS/`（内核与移植层）、`Libraries/`（CMSIS + STM32F4xx 标准外设库）以及 Keil 工程文件。clone 后可直接用 Keil 打开 `Project/xproject.uvprojx` 编译。
 
 开发环境：Keil MDK 5.x（脚本按 `D:\Keil_v5` 编写，请按实际安装路径修改脚本首行的 `UV4`）。
 
