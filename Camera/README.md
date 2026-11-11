@@ -10,28 +10,53 @@
 
 ## 目录与协作
 
+- `setup.ps1`：Windows首次安装，创建本目录虚拟环境并安装固定版本依赖。
 - `main.py`、`run.ps1`：照片、视频、USB摄像头预览入口。
 - `lane_vision/`：边线分割、片段与双边界配对、中心线、曲率及画面显示。
 - `calibrate_ground.py`：地面标定工具。
 - `config.track.json`：当前黄/红边界赛道配置；`config.example.json`：通用示例。
 - `tests/`、`examples/`：31项测试、回归样本、演示和已记录的回放结果。
 - `requirements.txt`、`requirements-tested.txt`：依赖范围与本机验证版本。
-- `SOURCE_MANIFEST.json`：本次整理来源和逐文件SHA256，排除依赖、缓存和运行输出。
+- `SOURCE_MANIFEST.json`：最初整理时的来源和逐文件SHA256历史快照，不代表后续修改后的文件校验值。
 
-在其他电脑或独立仓库根目录运行（不需要Codex）：
+## 从GitHub下载后使用（Windows）
+
+1. 安装64位Python，建议3.12（本机验证版本），安装时启用Python Launcher或加入PATH。不需要Codex、Keil或STM32开发环境。
+2. 在GitHub选择Code → Download ZIP并解压，或用Git克隆仓库。必须下载完整的`Camera/`文件夹，不要只下载`main.py`。
+3. 在解压后的仓库根目录打开PowerShell，执行下列命令。首次安装需要联网下载依赖；安装成功后，使用本地照片、视频和USB摄像头无需联网。
 
 ```powershell
-python -m venv Camera/.venv
-.\Camera\.venv\Scripts\python.exe -m pip install -r Camera/requirements-tested.txt
-.\Camera\.venv\Scripts\python.exe Camera/main.py --camera 1 --pixel-only --config Camera/config.track.json
-.\Camera\.venv\Scripts\python.exe Camera/tests/run_tests.py
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Camera\setup.ps1
+
+# 先使用生成的道路验证安装，不需要摄像头；Q或Esc退出
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Camera\run.ps1 --demo
+
+# 再选择本机摄像头；0打不开时尝试1或2
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Camera\run.ps1 --camera 0 --pixel-only --config .\Camera\config.track.json
+
+# 自动检查，不打开摄像头
+.\Camera\.venv\Scripts\python.exe .\Camera\tests\run_tests.py
 ```
+
+如果电脑有多个Python，可在首次安装时指定解释器：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Camera\setup.ps1 -PythonExecutable 'D:\Python312\python.exe'
+```
+
+上面的`D:\Python312\python.exe`只是示例，替换为自己的安装路径。脚本根据自身位置查找文件，工程可以放在不同盘符和中文目录；手动传入的照片、视频、配置路径相对于当前终端目录。若只下载了Camera目录，先进入该目录，再使用`./setup.ps1`、`./run.ps1`或`main.py`等不带`Camera/`前缀的路径。
+
+不要复制别人的`.venv`：每台电脑应重新执行安装脚本。虚拟环境与本机Python和所在路径有关，迁移文件夹后也应重新创建，见[Python虚拟环境说明](https://docs.python.org/3/library/venv.html)。
+
+### 已从其他目录移动过来时
+
+源码、默认配置和默认输出按`main.py`所在目录查找，保持Camera内部结构即可。旧快捷方式、终端命令里的完整路径需要改成新位置；外部照片、视频和标定文件也需要重新指定。若带有旧`.venv`，先将其改名备份为`.venv-old`，再运行`setup.ps1`创建新环境；旧`.deps`也是本机依赖，建议改名备份为`.deps-old`，避免覆盖新环境的包。确认能运行后可自行清理备份，这些目录均不应提交Git。
 
 上传GitHub时，将Camera作为仓库根目录下的独立模块，与Robot并列；不要把Camera目录里的`.deps`、`.build`、`output`或虚拟环境一起上传。源码仍为Python/OpenCV，未移植为STM32的C/H程序，未增加电机通信。
 
-## 本机立即运行
+## 常用命令
 
-从 `C:\work\智能车` 打开PowerShell：
+安装成功后，从下载后的仓库根目录打开PowerShell。如果直接调用脚本被执行策略阻止，使用上一节的`powershell -NoProfile -ExecutionPolicy Bypass -File`形式。
 
 ```powershell
 # 生成直道、左右弯和S弯并显示窗口；Q或Esc退出
@@ -49,20 +74,35 @@ python -m venv Camera/.venv
 # 只有主动指定这个选项才会打开摄像头，编号按本机实际设备选择
 .\Camera\run.ps1 --camera 0
 
-# 本次实际赛道：黄/红边线，排除白色反光（当前USB摄像头编号1）
+# 黄/红边线赛道，排除白色反光；编号按本机设备选择
 .\Camera\run.ps1 --camera 1 --pixel-only --config .\Camera\config.track.json
 ```
 
-本机已将OpenCV安装在本目录 `.deps/`，使用现有bundled Python与NumPy；未修改系统Python。`run.ps1`优先使用本目录虚拟环境，其次本机bundled Python，最后PATH中的Python。
+`run.ps1`只使用本目录`.venv`中的Python，不依赖作者电脑或Codex的安装位置。安装脚本不会把依赖装进系统Python。`requirements-tested.txt`固定本机验证的依赖版本；`requirements.txt`保留允许的版本范围，安装其他版本后需自行验证。
 
-若PowerShell不能运行脚本，可直接使用本机解释器：
+也可以直接调用虚拟环境解释器：
 
 ```powershell
-$visionPython = Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe'
-& $visionPython '.\Camera\main.py' --demo
+.\Camera\.venv\Scripts\python.exe .\Camera\main.py --demo
 ```
 
-其他电脑安装Python 3.11+，建议建立虚拟环境，再执行 `python -m pip install -r Camera/requirements.txt`，使用该解释器运行 `Camera/main.py`。本轮实测Python3.12.14、NumPy2.3.5、OpenCV4.14.0（wheel 4.14.0.94）。依赖目录、输出和虚拟环境不纳入Git。
+本机历史实测Python3.12.14、NumPy2.3.5、OpenCV4.14.0（wheel 4.14.0.94）。Windows安装脚本要求64位Python3.11+，建议3.12。其他系统可按下方手动安装；目前没有在macOS/Linux实机验收。
+
+```bash
+python3 -m venv Camera/.venv
+Camera/.venv/bin/python -m pip install -r Camera/requirements-tested.txt
+Camera/.venv/bin/python Camera/main.py --demo
+Camera/.venv/bin/python Camera/tests/run_tests.py
+```
+
+### 常见问题
+
+- 找不到Python或提示版本不符：安装64位Python3.12，重开终端，或通过`-PythonExecutable`指定安装路径。
+- 下载依赖失败：检查网络和pip错误，恢复网络后重新运行`setup.ps1`即可；脚本会复用已经创建的环境。
+- `No module named cv2/numpy`：确认执行的是`Camera/.venv`里的Python，并重新运行安装脚本。
+- 摄像头打不开：检查USB连接、Windows相机隐私权限，关闭占用设备的软件，并尝试其他编号；每台电脑的编号可能不同。
+- 演示正常、实际赛道识别不好：相机位置、光照、分辨率及赛道颜色不同，需要调整配置。真实米制结果还需要自己的相机标定，不能照搬演示标定。
+- 窗口无法显示：需要本地图形桌面，不能用`opencv-python-headless`替代本项目的桌面依赖；在无桌面环境加`--no-display`保存结果。
 
 ## 当前处理流程与适用范围
 
@@ -96,10 +136,10 @@ ROI顶端设为0.4以减少远处背景，标线最大扫描宽度64像素适配
 
 本次修改解决颜色误检：不放宽分支歧义、近处种子、丢线或标定门限。录像中另有一侧边线出画、参考中线落到路外、抬头及倾斜，仍可能LOST/AMBIGUOUS。请把相机固定在车头中间，朝前下方，使画面中下部能同时看到当前车道两侧边界。完全过曝成白色的黄色线没有可靠颜色信息，本版会拒绝，不凭空补线；此时需降低曝光或改善照明/反光，并重新验证。当前未修改相机硬件曝光、增益或白平衡。
 
-从任何PowerShell目录启动：
+从任何PowerShell目录启动时，使用下载后文件的完整路径，例如：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "C:\work\智能车\Camera\run.ps1" --camera 1 --pixel-only --config "C:\work\智能车\Camera\config.track.json"
+powershell -NoProfile -ExecutionPolicy Bypass -File "D:\你的工程\Camera\run.ps1" --camera 0 --pixel-only --config "D:\你的工程\Camera\config.track.json"
 ```
 
 相关测试覆盖真实局部浅黄保留/明亮非边线抑制、亮度变化、红色Hue跨零、完全白色拒绝、ROI/去噪预览一致性。它们不能证明本赛道完整双边界跟踪或实车闭环通过。
@@ -138,14 +178,13 @@ python Camera/main.py --image '道路照片.jpg' --calibration '你的标定-v1.
 ## 测试
 
 ```powershell
-$visionPython = Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe'
-& $visionPython '.\Camera\tests\run_tests.py'
+.\Camera\.venv\Scripts\python.exe .\Camera\tests\run_tests.py
 ```
 
 覆盖标定/独立验证、畸变前提、坐标方向、直道、偏离中线、左右曲率/半径、S弯、丢线、相邻车道干扰、分支歧义、短虚线/长缺口、分辨率变化、中文照片路径、录制视频和无窗口输出。几何与CLI检查使用生成图像/视频；自动化测试不打开摄像头或串口。
 
 另含实际地面裁剪的反光回归，以及片段/配对/中心线分层显示、固定图像分区、无效拟合不画绿色路径等检查。当前共31项。对20-47-29虚线录像的466帧回放全部显示near_seed_missing，虽然每帧均有颜色片段，但无已配对扫描行；新诊断不会将这些片段伪装成完整道路。与修改前逐帧核对，原配对、像素几何、米制几何及预瞄字段完全一致。仍需固定相机朝向、真实标定及独立边界/跨帧/路口模型才能继续完善；详见examples/虚线片段回放摘要.json。
 
-方案与阶段性验收仍见上级工作区 `测试准备/docs/视觉巡线与差速转向初步方案.md` 和对应验收用例；其中全部真实图像/实车项仍待数据和阶段验证，不能把合成测试批量标为通过。
+原上级工作区的方案与验收资料未随Camera目录交付，也不是运行依赖。真实图像/实车验证仍需独立完成，不能把合成测试批量标为通过。
 
 参考：[OpenCV颜色范围分割](https://docs.opencv.org/4.x/da/d97/tutorial_threshold_inRange.html)、[相机标定与几何](https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html)、[图像解码/编码](https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html)。
