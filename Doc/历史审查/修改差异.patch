@@ -1,0 +1,2968 @@
+--- a/Driver/ax_beep.c
++++ b/Driver/ax_beep.c
+@@ -1,57 +1,9 @@
+-/**			                                                    
+-		   ____                    _____ _______ _____       XTARK@塔克创新
+-		  / __ \                  / ____|__   __|  __ \ 
+-		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
+-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
+-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+-		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
+-				| |                                     
+-				|_|                OpenCTR   机器人控制器
+-									 
+-  ****************************************************************************** 
+-  *           
+-  * 版权所有： XTARK@塔克创新  版权所有，盗版必究
+-  * 公司网站： www.xtark.cn   www.tarkbot.com
+-  * 淘宝店铺： https://xtark.taobao.com  
+-  * 塔克微信： 塔克创新（关注公众号，获取最新更新资讯）
+-  *      
+-  ******************************************************************************
+-  * @作  者  Musk Han@XTARK
+-  * @版  本  V1.0
+-  * @内  容  BEEP蜂鸣器控制
+-  ******************************************************************************
+-  * @说  明
+-  *
+-  * 
+-  ******************************************************************************
+-  */
+-
+ #include "ax_beep.h"
+-
+-/**
+-  * @简  述  初始化
+-  * @参  数  无
+-  * @返回值  无
+-  */
+-void AX_BEEP_Init(void) 
+-{
+-	GPIO_InitTypeDef GPIO_InitStructure;
+-
+-	//GPIO配置 
+-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE); 
+-	
+-	//配置GPIO  推挽输出模式 
+-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+-	GPIO_Init(GPIOE, &GPIO_InitStructure);
+-	
+-	//关闭蜂鸣器
+-	GPIO_ResetBits(GPIOE,  GPIO_Pin_1);	
+-
+-}	
+-
+-
+-/******************* (C) 版权 2023 XTARK **************************************/
++void AX_BEEP_Init(void) {
++    GPIO_InitTypeDef gpio;
++    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE,ENABLE);
++    GPIO_StructInit(&gpio); gpio.GPIO_Pin=AX_BEEP_PIN;
++    gpio.GPIO_Mode=GPIO_Mode_OUT; gpio.GPIO_OType=GPIO_OType_PP;
++    gpio.GPIO_Speed=GPIO_Speed_50MHz; gpio.GPIO_PuPd=GPIO_PuPd_NOPULL;
++    AX_BEEP_Off(); GPIO_Init(GPIOE,&gpio);
++}
+--- a/Driver/ax_beep.h
++++ b/Driver/ax_beep.h
+@@ -1,42 +1,14 @@
+-/**			                                                    
+-		   ____                    _____ _______ _____       XTARK@塔克创新
+-		  / __ \                  / ____|__   __|  __ \ 
+-		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
+-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
+-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+-		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
+-				| |                                     
+-				|_|                OpenCTR   机器人控制器
+-									 
+-  ****************************************************************************** 
+-  *           
+-  * 版权所有： XTARK@塔克创新  版权所有，盗版必究
+-  * 公司网站： www.xtark.cn   www.tarkbot.com
+-  * 淘宝店铺： https://xtark.taobao.com  
+-  * 塔克微信： 塔克创新（关注公众号，获取最新更新资讯）
+-  *      
+-  ******************************************************************************
+-  * @作  者  Musk Han@XTARK
+-  * @版  本  V1.0
+-  * @内  容  BEEP蜂鸣器控制
+-  ******************************************************************************
+-  */
+-
+-/* Define to prevent recursive inclusion -------------------------------------*/
+ #ifndef __AX_BEEP_H
+ #define __AX_BEEP_H
+-
+-/* Includes ------------------------------------------------------------------*/	 
+ #include "stm32f4xx.h"
+-
+-// 接口函数
++#include "ax_board_config.h"
++#if AX_BOARD_H60_V37
++#define AX_BEEP_PIN GPIO_Pin_0
++#else
++#define AX_BEEP_PIN GPIO_Pin_1
++#endif
+ void AX_BEEP_Init(void);
+-
+-// 蜂鸣器操作函数宏定义
+-#define AX_BEEP_Off()       GPIO_ResetBits(GPIOE, GPIO_Pin_1)       //蜂鸣器不鸣
+-#define AX_BEEP_On()		GPIO_SetBits(GPIOE, GPIO_Pin_1)     //蜂鸣器鸣叫
+-#define AX_BEEP_Toggle()    GPIO_WriteBit(GPIOE, GPIO_Pin_1, (BitAction) (1 - GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_1)))    //蜂鸣器状态翻转
+-
+-#endif 
+-
+-/******************* (C) 版权 2023 XTARK **************************************/
++#define AX_BEEP_Off() GPIO_ResetBits(GPIOE,AX_BEEP_PIN)
++#define AX_BEEP_On() GPIO_SetBits(GPIOE,AX_BEEP_PIN)
++#define AX_BEEP_Toggle() GPIO_ToggleBits(GPIOE,AX_BEEP_PIN)
++#endif
+--- a/Driver/ax_can.c
++++ b/Driver/ax_can.c
+@@ -115,6 +115,10 @@
+   */
+ void CAN1_RX0_IRQHandler(void)
+ {
++#if APP_KEY_TURN_TEST
++    CAN_Receive(CAN1,CAN_FIFO0,&RxMessage);
++#else
++
+ 
+ 	//接收FIFO0中的数据
+     CAN_Receive(CAN1,CAN_FIFO0, &RxMessage); 
+@@ -140,6 +144,8 @@
+ //	RxMessage.Data[0],RxMessage.Data[1],RxMessage.Data[2],RxMessage.Data[3],
+ //	RxMessage.Data[4],RxMessage.Data[5],RxMessage.Data[6],RxMessage.Data[7]);		
+ 	
++
++#endif
+ } 
+ 
+ 
+--- a/Driver/ax_encoder.c
++++ b/Driver/ax_encoder.c
+@@ -26,7 +26,8 @@
+   ******************************************************************************
+   */
+ 
+-#include "ax_encoder.h" 
++#include "ax_encoder.h"
++#include "ax_encoder_extended.h" 
+ 
+ /**
+   * @简  述  编码器初始化
+@@ -80,27 +81,22 @@
+   
+     TIM_Cmd(TIM2, ENABLE);   	
+ 	
+-}
+-
+-/**
+-  * @简  述  编码器获取计数器数值
+-  * @参  数  无
+-  * @返回值  计数器当前值
+-  */
+-uint16_t AX_ENCODER_A_GetCounter(void)
+-{
+-	return TIM2->CNT;
+-}
+-
+-/**
+-  * @简  述  编码器设置计数器数值
+-  * @参  数  count  计数器数值
+-  * @返回值  无
+-  */
+-void AX_ENCODER_A_SetCounter(uint16_t count)
+-{
+-	TIM2->CNT = count;
+-}
++    AX_ENCODER_ExtendedInit(0u);
++}
++
++/**
++  * @简  述  编码器获取计数器数值
++  * @参  数  无
++  * @返回值  计数器当前值
++  */
++int32_t AX_ENCODER_A_GetCounter(void) { return AX_ENCODER_ReadExtended(0u); }
++
++/**
++  * @简  述  编码器设置计数器数值
++  * @参  数  count  计数器数值
++  * @返回值  无
++  */
++void AX_ENCODER_A_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(0u,count); }
+ 
+ 
+ /**
+@@ -151,27 +147,22 @@
+   
+     TIM_Cmd(TIM3, ENABLE);   	
+ 	
+-}
+-
+-/**
+-  * @简  述  编码器获取计数器数值
+-  * @参  数  无
+-  * @返回值  计数器当前值
+-  */
+-uint16_t AX_ENCODER_B_GetCounter(void)
+-{
+-	return TIM3->CNT;
+-}
+-
+-/**
+-  * @简  述  编码器设置计数器数值
+-  * @参  数  count  计数器数值
+-  * @返回值  无
+-  */
+-void AX_ENCODER_B_SetCounter(uint16_t count)
+-{
+-	TIM3->CNT = count;
+-}
++    AX_ENCODER_ExtendedInit(1u);
++}
++
++/**
++  * @简  述  编码器获取计数器数值
++  * @参  数  无
++  * @返回值  计数器当前值
++  */
++int32_t AX_ENCODER_B_GetCounter(void) { return AX_ENCODER_ReadExtended(1u); }
++
++/**
++  * @简  述  编码器设置计数器数值
++  * @参  数  count  计数器数值
++  * @返回值  无
++  */
++void AX_ENCODER_B_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(1u,count); }
+ 
+ /**
+   * @简  述  编码器初始化
+@@ -221,27 +212,22 @@
+   
+     TIM_Cmd(TIM5, ENABLE);   	
+ 	
+-}
+-
+-/**
+-  * @简  述  编码器获取计数器数值
+-  * @参  数  无
+-  * @返回值  计数器当前值
+-  */
+-uint16_t AX_ENCODER_C_GetCounter(void)
+-{
+-	return TIM5->CNT;
+-}
+-
+-/**
+-  * @简  述  编码器设置计数器数值
+-  * @参  数  count  计数器数值
+-  * @返回值  无
+-  */
+-void AX_ENCODER_C_SetCounter(uint16_t count)
+-{
+-	TIM5->CNT = count;
+-}
++    AX_ENCODER_ExtendedInit(2u);
++}
++
++/**
++  * @简  述  编码器获取计数器数值
++  * @参  数  无
++  * @返回值  计数器当前值
++  */
++int32_t AX_ENCODER_C_GetCounter(void) { return AX_ENCODER_ReadExtended(2u); }
++
++/**
++  * @简  述  编码器设置计数器数值
++  * @参  数  count  计数器数值
++  * @返回值  无
++  */
++void AX_ENCODER_C_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(2u,count); }
+ 
+ /**
+   * @简  述  编码器初始化
+@@ -291,26 +277,21 @@
+   
+     TIM_Cmd(TIM4, ENABLE);   	
+ 	
+-}
+-
+-/**
+-  * @简  述  编码器获取计数器数值
+-  * @参  数  无
+-  * @返回值  计数器当前值
+-  */
+-uint16_t AX_ENCODER_D_GetCounter(void)
+-{
+-	return TIM4->CNT;
+-}
+-
+-/**
+-  * @简  述  编码器设置计数器数值
+-  * @参  数  count  计数器数值
+-  * @返回值  无
+-  */
+-void AX_ENCODER_D_SetCounter(uint16_t count)
+-{
+-	TIM4->CNT = count;
+-}
++    AX_ENCODER_ExtendedInit(3u);
++}
++
++/**
++  * @简  述  编码器获取计数器数值
++  * @参  数  无
++  * @返回值  计数器当前值
++  */
++int32_t AX_ENCODER_D_GetCounter(void) { return AX_ENCODER_ReadExtended(3u); }
++
++/**
++  * @简  述  编码器设置计数器数值
++  * @参  数  count  计数器数值
++  * @返回值  无
++  */
++void AX_ENCODER_D_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(3u,count); }
+ 
+ /******************* (C) 版权 2023 XTARK **************************************/
+--- a/Driver/ax_encoder.h
++++ b/Driver/ax_encoder.h
+@@ -32,19 +32,19 @@
+ 
+ //X-SOFT 接口函数
+ void AX_ENCODER_A_Init(void);          //编码器初始化
+-uint16_t AX_ENCODER_A_GetCounter(void);          //编码器获取计数器数值
++int32_t AX_ENCODER_A_GetCounter(void);          //编码器获取计数器数值
+ void AX_ENCODER_A_SetCounter(uint16_t count);    //编码器设置计数器数值
+ 
+ void AX_ENCODER_B_Init(void);          //编码器初始化
+-uint16_t AX_ENCODER_B_GetCounter(void);          //编码器获取计数器数值
++int32_t AX_ENCODER_B_GetCounter(void);          //编码器获取计数器数值
+ void AX_ENCODER_B_SetCounter(uint16_t count);    //编码器设置计数器数值
+ 
+ void AX_ENCODER_C_Init(void);          //编码器初始化
+-uint16_t AX_ENCODER_C_GetCounter(void);          //编码器获取计数器数值
++int32_t AX_ENCODER_C_GetCounter(void);          //编码器获取计数器数值
+ void AX_ENCODER_C_SetCounter(uint16_t count);    //编码器设置计数器数值
+ 
+ void AX_ENCODER_D_Init(void);          //编码器初始化
+-uint16_t AX_ENCODER_D_GetCounter(void);          //编码器获取计数器数值
++int32_t AX_ENCODER_D_GetCounter(void);          //编码器获取计数器数值
+ void AX_ENCODER_D_SetCounter(uint16_t count);    //编码器设置计数器数值
+ 
+ #endif
+--- a/Driver/ax_encoder_extended.c
++++ b/Driver/ax_encoder_extended.c
+@@ -0,0 +1,67 @@
++#include "ax_encoder_extended.h"
++#include "stm32f4xx.h"
++#include "FreeRTOS.h"
++#include "task.h"
++
++/* TIM2/TIM5 are native 32-bit; extend TIM3/TIM4 with update interrupts.
++ * The original uint16_t API truncated every channel, including TIM2/TIM5.
++ */
++static volatile int32_t wraps[2];
++static TIM_TypeDef *timer_for(unsigned channel)
++{
++    switch(channel) {case 0u:return TIM2;case 1u:return TIM3;
++                    case 2u:return TIM5;default:return TIM4;}
++}
++static unsigned slot_for(unsigned channel) {return channel==1u ? 0u : 1u;}
++static void update_wrap(TIM_TypeDef *timer,unsigned slot)
++{
++    if (TIM_GetITStatus(timer,TIM_IT_Update)!=RESET) {
++        wraps[slot] += timer->CNT<0x8000u ? 65536 : -65536;
++        TIM_ClearITPendingBit(timer,TIM_IT_Update);
++    }
++}
++void TIM3_IRQHandler(void) {update_wrap(TIM3,0u);}
++void TIM4_IRQHandler(void) {update_wrap(TIM4,1u);}
++
++void AX_ENCODER_ExtendedInit(unsigned channel)
++{
++    TIM_TypeDef *timer=timer_for(channel);
++    NVIC_InitTypeDef irq;
++    if(channel==0u || channel==2u) {
++        TIM_SetAutoreload(timer,0xffffffffu);
++    } else {
++        wraps[slot_for(channel)]=0;
++        irq.NVIC_IRQChannel=channel==1u ? TIM3_IRQn : TIM4_IRQn;
++        irq.NVIC_IRQChannelPreemptionPriority=1u;
++        irq.NVIC_IRQChannelSubPriority=1u;
++        irq.NVIC_IRQChannelCmd=ENABLE;
++        NVIC_Init(&irq);
++        TIM_ClearITPendingBit(timer,TIM_IT_Update);
++        TIM_ITConfig(timer,TIM_IT_Update,ENABLE);
++    }
++    AX_ENCODER_SetExtended(channel,0u);
++}
++int32_t AX_ENCODER_ReadExtended(unsigned channel)
++{
++    TIM_TypeDef *timer=timer_for(channel);
++    uint32_t before,after,low;
++    int32_t high,result;
++    if(channel==0u || channel==2u) return (int32_t)timer->CNT;
++    taskENTER_CRITICAL();
++    high=wraps[slot_for(channel)]; before=timer->SR;
++    low=timer->CNT & 0xffffu; after=timer->SR;
++    /* Re-read if overflow occurred between the first flag read and CNT read. */
++    if(!(before & TIM_IT_Update) && (after & TIM_IT_Update)) low=timer->CNT & 0xffffu;
++    if(after & TIM_IT_Update) high += low<0x8000u ? 65536 : -65536;
++    result=high+(int32_t)low;
++    taskEXIT_CRITICAL(); return result;
++}
++void AX_ENCODER_SetExtended(unsigned channel,uint16_t value)
++{
++    TIM_TypeDef *timer=timer_for(channel);
++    taskENTER_CRITICAL();
++    if(channel==1u || channel==3u) wraps[slot_for(channel)]=0;
++    timer->CNT=value;
++    TIM_ClearITPendingBit(timer,TIM_IT_Update);
++    taskEXIT_CRITICAL();
++}
+--- a/Driver/ax_encoder_extended.h
++++ b/Driver/ax_encoder_extended.h
+@@ -0,0 +1,7 @@
++#ifndef AX_ENCODER_EXTENDED_H
++#define AX_ENCODER_EXTENDED_H
++#include <stdint.h>
++void AX_ENCODER_ExtendedInit(unsigned channel);
++int32_t AX_ENCODER_ReadExtended(unsigned channel);
++void AX_ENCODER_SetExtended(unsigned channel,uint16_t value);
++#endif
+--- a/Driver/ax_imu_bus.c
++++ b/Driver/ax_imu_bus.c
+@@ -0,0 +1,93 @@
++#include "ax_imu_bus.h"
++#include "ax_sys.h"
++#include "ax_delay.h"
++
++/* Both documented IMUs use PB6/PB7. Open-drain avoids driving against a slave. */
++#define SCL(v) GPIO_WriteBit(GPIOB, GPIO_Pin_6, (v) ? Bit_SET : Bit_RESET)
++#define SDA(v) GPIO_WriteBit(GPIOB, GPIO_Pin_7, (v) ? Bit_SET : Bit_RESET)
++#define READ_SDA() GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7)
++
++void AX_IMU_DelayUs(uint32_t us) { AX_Delayus(us); }
++static void pause_bus(void) { AX_Delayus(3u); }
++static uint8_t clock_high(void)
++{
++    unsigned i;
++    SCL(1);
++    for (i = 0; i < 100u; ++i) {
++        if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_6)) { pause_bus(); return 1u; }
++        AX_Delayus(1u);
++    }
++    return 0u;
++}
++static void stop_bus(void)
++{
++    SCL(0); SDA(0); pause_bus(); (void)clock_high(); SDA(1); pause_bus();
++}
++static uint8_t start_bus(void)
++{
++    SDA(1);
++    if (!clock_high() || !READ_SDA()) { stop_bus(); return 0u; }
++    SDA(0); pause_bus(); SCL(0); return 1u;
++}
++static uint8_t send_byte(uint8_t value)
++{
++    unsigned i;
++    uint8_t ack;
++    for (i = 0; i < 8u; ++i) {
++        SDA(value & 0x80u); pause_bus();
++        if (!clock_high()) { SCL(0); return 0u; }
++        SCL(0); value <<= 1;
++    }
++    SDA(1); pause_bus();
++    if (!clock_high()) { SCL(0); return 0u; }
++    ack = (READ_SDA() == 0u); SCL(0); return ack;
++}
++static uint8_t receive_byte(uint8_t *value, uint8_t ack)
++{
++    unsigned i;
++    uint8_t result = 0u;
++    SDA(1);
++    for (i = 0; i < 8u; ++i) {
++        pause_bus();
++        if (!clock_high()) { SCL(0); return 0u; }
++        result = (uint8_t)((result << 1) | (READ_SDA() ? 1u : 0u)); SCL(0);
++    }
++    SDA(!ack); pause_bus();
++    if (!clock_high()) { SCL(0); SDA(1); return 0u; }
++    SCL(0); SDA(1); *value = result; return 1u;
++}
++void AX_IMU_BusInit(void)
++{
++    GPIO_InitTypeDef gpio;
++    unsigned i;
++    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
++    GPIO_StructInit(&gpio);
++    gpio.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
++    gpio.GPIO_Mode = GPIO_Mode_OUT;
++    gpio.GPIO_OType = GPIO_OType_OD;
++    gpio.GPIO_PuPd = GPIO_PuPd_UP;
++    gpio.GPIO_Speed = GPIO_Speed_50MHz;
++    GPIO_Init(GPIOB, &gpio);
++    SDA(1);
++    for (i = 0; i < 9u; ++i) { SCL(0); pause_bus(); (void)clock_high(); }
++    stop_bus();
++}
++uint8_t AX_IMU_BusWrite(uint8_t address, uint8_t reg, uint8_t value)
++{
++    uint8_t ok = start_bus() && send_byte((uint8_t)(address << 1)) &&
++                 send_byte(reg) && send_byte(value);
++    stop_bus(); return ok;
++}
++uint8_t AX_IMU_BusRead(uint8_t address, uint8_t reg, uint8_t *data, uint8_t size)
++{
++    uint8_t i;
++    if (!data || size == 0u) { return 0u; }
++    if (!start_bus() || !send_byte((uint8_t)(address << 1)) || !send_byte(reg) ||
++        !start_bus() || !send_byte((uint8_t)((address << 1) | 1u))) {
++        stop_bus(); return 0u;
++    }
++    for (i = 0u; i < size; ++i) {
++        if (!receive_byte(&data[i], i + 1u < size)) { stop_bus(); return 0u; }
++    }
++    stop_bus(); return 1u;
++}
+--- a/Driver/ax_imu_bus.h
++++ b/Driver/ax_imu_bus.h
+@@ -0,0 +1,8 @@
++#ifndef AX_IMU_BUS_H
++#define AX_IMU_BUS_H
++#include <stdint.h>
++void AX_IMU_BusInit(void);
++void AX_IMU_DelayUs(uint32_t us);
++uint8_t AX_IMU_BusRead(uint8_t address, uint8_t reg, uint8_t *data, uint8_t size);
++uint8_t AX_IMU_BusWrite(uint8_t address, uint8_t reg, uint8_t value);
++#endif
+--- a/Driver/ax_led.c
++++ b/Driver/ax_led.c
+@@ -1,58 +1,10 @@
+-/**			                                                    
+-		   ____                    _____ _______ _____       XTARK@塔克创新
+-		  / __ \                  / ____|__   __|  __ \ 
+-		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
+-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
+-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+-		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
+-				| |                                     
+-				|_|                OpenCTR   机器人控制器
+-									 
+-  ****************************************************************************** 
+-  *           
+-  * 版权所有： XTARK@塔克创新  版权所有，盗版必究
+-  * 公司网站： www.xtark.cn   www.tarkbot.com
+-  * 淘宝店铺： https://xtark.taobao.com  
+-  * 塔克微信： 塔克创新（关注公众号，获取最新更新资讯）
+-  *      
+-  ******************************************************************************
+-  * @作  者  Musk Han@XTARK
+-  * @版  本  V1.0
+-  * @内  容  LED灯控制
+-  ******************************************************************************
+-  * @说  明
+-  *
+-  * 
+-  ******************************************************************************
+-  */
+-
+ #include "ax_led.h"
+-
+-/**
+-  * @简  述  LED 初始化
+-  * @参  数  无
+-  * @返回值  无
+-  */
+-void AX_LED_Init(void) 
+-{
+-	GPIO_InitTypeDef GPIO_InitStructure;
+-
+-	/* GPIO配置 */
+-	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOD, ENABLE); //启动GPIO时钟 
+-	
+-	//配置红色LED指示灯GPIO  推挽输出模式 
+-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+-	GPIO_Init(GPIOD, &GPIO_InitStructure);
+-	GPIO_SetBits(GPIOD,  GPIO_Pin_3);	
+-
+-	//配置绿色LED指示灯GPIO  推挽输出模式  
+-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+-	GPIO_Init(GPIOD, &GPIO_InitStructure);
+-	GPIO_SetBits(GPIOD,  GPIO_Pin_4);	
++void AX_LED_Init(void) {
++    GPIO_InitTypeDef gpio;
++    RCC_AHB1PeriphClockCmd(AX_LED_RCC,ENABLE);
++    GPIO_StructInit(&gpio);
++    gpio.GPIO_Pin=AX_LED_RED|AX_LED_GREEN;
++    gpio.GPIO_Mode=GPIO_Mode_OUT; gpio.GPIO_OType=GPIO_OType_PP;
++    gpio.GPIO_Speed=GPIO_Speed_50MHz; gpio.GPIO_PuPd=GPIO_PuPd_UP;
++    GPIO_SetBits(AX_LED_PORT,gpio.GPIO_Pin); GPIO_Init(AX_LED_PORT,&gpio);
+ }
+-
+-/******************* (C) 版权 2023 XTARK **************************************/
+--- a/Driver/ax_led.h
++++ b/Driver/ax_led.h
+@@ -1,46 +1,23 @@
+-/**			                                                    
+-		   ____                    _____ _______ _____       XTARK@塔克创新
+-		  / __ \                  / ____|__   __|  __ \ 
+-		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
+-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
+-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+-		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
+-				| |                                     
+-				|_|                OpenCTR   机器人控制器
+-									 
+-  ****************************************************************************** 
+-  *           
+-  * 版权所有： XTARK@塔克创新  版权所有，盗版必究
+-  * 公司网站： www.xtark.cn   www.tarkbot.com
+-  * 淘宝店铺： https://xtark.taobao.com  
+-  * 塔克微信： 塔克创新（关注公众号，获取最新更新资讯）
+-  *      
+-  ******************************************************************************
+-  * @作  者  Musk Han@XTARK
+-  * @版  本  V1.0
+-  * @内  容  LED灯控制
+-  ******************************************************************************
+-  */
+-
+-/* Define to prevent recursive inclusion -------------------------------------*/
+ #ifndef __AX_LED_H
+ #define __AX_LED_H
+-
+-/* Includes ------------------------------------------------------------------*/	 
+ #include "stm32f4xx.h"
+-
+-//接口函数
++#include "ax_board_config.h"
++#if AX_BOARD_H60_V37
++#define AX_LED_PORT GPIOB
++#define AX_LED_RCC RCC_AHB1Periph_GPIOB
++#define AX_LED_RED GPIO_Pin_0
++#define AX_LED_GREEN GPIO_Pin_1
++#else
++#define AX_LED_PORT GPIOD
++#define AX_LED_RCC RCC_AHB1Periph_GPIOD
++#define AX_LED_RED GPIO_Pin_3
++#define AX_LED_GREEN GPIO_Pin_4
++#endif
+ void AX_LED_Init(void);
+-
+-#define AX_LED_Red_Off()        GPIO_SetBits(GPIOD, GPIO_Pin_3)      //LEDR红色熄灭
+-#define AX_LED_Red_On()  	    GPIO_ResetBits(GPIOD, GPIO_Pin_3)    //LEDR红色点亮
+-#define AX_LED_Red_Toggle()     GPIO_WriteBit(GPIOD, GPIO_Pin_3, (BitAction) (1 - GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_3)))	//LEDR红色状态翻转
+-
+-#define AX_LED_Green_Off()  	GPIO_SetBits(GPIOD, GPIO_Pin_4)      //LEDG绿色熄灭
+-#define AX_LED_Green_On()		GPIO_ResetBits(GPIOD, GPIO_Pin_4)    //LEDG绿色点亮
+-#define AX_LED_Green_Toggle()   GPIO_WriteBit(GPIOD, GPIO_Pin_4, (BitAction) (1 - GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_4)))	//LEDG绿色状态翻转
+-
+-
+-#endif 
+-
+-/******************* (C) 版权 2023 XTARK **************************************/
++#define AX_LED_Red_Off() GPIO_SetBits(AX_LED_PORT,AX_LED_RED)
++#define AX_LED_Red_On() GPIO_ResetBits(AX_LED_PORT,AX_LED_RED)
++#define AX_LED_Red_Toggle() GPIO_ToggleBits(AX_LED_PORT,AX_LED_RED)
++#define AX_LED_Green_Off() GPIO_SetBits(AX_LED_PORT,AX_LED_GREEN)
++#define AX_LED_Green_On() GPIO_ResetBits(AX_LED_PORT,AX_LED_GREEN)
++#define AX_LED_Green_Toggle() GPIO_ToggleBits(AX_LED_PORT,AX_LED_GREEN)
++#endif
+--- a/Driver/ax_mpu6050.c
++++ b/Driver/ax_mpu6050.c
+@@ -1,510 +1,135 @@
+-/**			                                                    
+-		   ____                    _____ _______ _____       XTARK@塔克创新
+-		  / __ \                  / ____|__   __|  __ \ 
+-		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
+-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
+-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+-		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
+-				| |                                     
+-				|_|                OpenCTR   机器人控制器
+-									 
+-  ****************************************************************************** 
+-  *           
+-  * 版权所有： XTARK@塔克创新  版权所有，盗版必究
+-  * 公司网站： www.xtark.cn   www.tarkbot.com
+-  * 淘宝店铺： https://xtark.taobao.com  
+-  * 塔克微信： 塔克创新（关注公众号，获取最新更新资讯）
+-  *      
+-  ******************************************************************************
+-  * @作  者  Musk Han@XTARK
+-  * @版  本  V1.0
+-  * @内  容  MPU6050 操作
+-  *
+-  ******************************************************************************
+-  * @说  明
+-  *
+-  * 1.MPU6050三轴加速度传感器、三轴陀螺仪
+-  * 2.IIC通信采用IO口模拟方式
+-  *
+-  ******************************************************************************
+-  */
++#include "ax_mpu6050.h"
++#include "ax_imu_bus.h"
+ 
+-#include "ax_mpu6050.h" 
+-#include "ax_sys.h"
+-#include "ax_delay.h"
++static AX_IMU_Kind kind;
++static uint8_t address, ready, acc_range, gyro_range;
++static uint8_t qmi_odr = 5u;
+ 
+-//IO方向设置
+-#define SDA_IN()  {GPIOB->MODER&=~(3<<(7*2));GPIOB->MODER|=0<<7*2;}	//输入模式
+-#define SDA_OUT() {GPIOB->MODER&=~(3<<(7*2));GPIOB->MODER|=1<<7*2;} //输出模式
+-
+-//IO操作函数	 
+-#define IIC_SCL    PBout(6) //SCL
+-#define IIC_SDA    PBout(7) //SDA	 
+-#define READ_SDA   PBin(7)  //输入SDA 
+-
+-//函数定义
+-static void MPU6050_WriteRegister(uint8_t reg_address, uint8_t data);
+-static void MPU6050_ReadRegister(uint8_t reg_address, uint8_t *pdata, uint16_t len);
+-
+-/**
+-  * @简  述  MPU6050传感器初始化
+-  * @参  数  无	  
+-  * @返回值  无
+-  */
++static uint8_t write_reg(uint8_t reg, uint8_t value)
++{
++    if (!ready || !AX_IMU_BusWrite(address, reg, value)) { ready=0u; return 0u; }
++    return 1u;
++}
++static uint8_t read_reg(uint8_t reg, uint8_t *data, uint8_t size)
++{
++    if (!ready || !AX_IMU_BusRead(address, reg, data, size)) { ready=0u; return 0u; }
++    return 1u;
++}
++static uint8_t probe(uint8_t addr, uint8_t reg, uint8_t expected)
++{
++    uint8_t id=0u;
++    return AX_IMU_BusRead(addr, reg, &id, 1u) && id==expected;
++}
++static void qmi_config(void)
++{
++    if (!write_reg(8u,0u)) return;
++    if (!write_reg(2u,0x60u)) return; /* auto-increment, sensor little-endian */
++    if (!write_reg(3u,(uint8_t)(0x80u | (acc_range<<4) | qmi_odr))) return;
++    if (!write_reg(4u,(uint8_t)(0x80u | ((gyro_range+4u)<<4) | qmi_odr))) return;
++    if (!write_reg(6u,0x77u)) return;
++    (void)write_reg(8u,3u);
++}
+ void AX_MPU6050_Init(void)
+-{	
+-	//初始化I2C2
+-	GPIO_InitTypeDef  GPIO_InitStructure;
+-
+-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);//使能GPIOB时钟
+-
+-	//SCL设置为推挽输出
+-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
+-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
+-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
+-    GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+-	
+-	//SDA设置为开漏输出
+-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+-    GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+-	
+-    IIC_SCL=1;
+-    IIC_SDA=1;
+-	
+-	//复位唤醒MPU6050
+-    MPU6050_WriteRegister(MPU6050_PWR_MGMT1_REG,0x80);      //复位
+-	AX_Delayus(100000);  	//等待传感器稳定
+-	MPU6050_WriteRegister(MPU6050_PWR_MGMT1_REG,0x00);      //解除休眠状态
+-	
+-	//配置MPU6050寄存器  
+-	MPU6050_WriteRegister(MPU6050_GYRO_CFG_REG,0x18);      //陀螺仪量程 默认2000deg/s
+-    MPU6050_WriteRegister(MPU6050_ACCEL_CFG_REG,0x00);     //加速计量程 默认2g	
+-	MPU6050_WriteRegister(MPU6050_INT_EN_REG,0x00);      //关闭中断
+-	MPU6050_WriteRegister(MPU6050_FIFO_EN_REG,0x00);       //关闭FIFO
+-	
+-	MPU6050_WriteRegister(MPU6050_PWR_MGMT1_REG,0x01);      //设置CLKSEL,PLL X轴为参考
+-	MPU6050_WriteRegister(MPU6050_PWR_MGMT2_REG,0x00); 	    //加速度与陀螺仪都工作	
+-
++{
++    uint8_t addr;
++    ready=0u; kind=AX_IMU_NONE; acc_range=0u; gyro_range=1u; qmi_odr=5u;
++    AX_IMU_BusInit();
++    for (addr=0x6au; addr<=0x6bu; ++addr) {
++        if (probe(addr,0u,5u)) { address=addr; kind=AX_IMU_QMI8658; break; }
++    }
++    if (kind==AX_IMU_QMI8658) {
++        ready=1u;
++        if (!write_reg(96u,0xb0u)) return;
++        AX_IMU_DelayUs(150000u);
++        if (!probe(address,0u,5u)) { ready=0u; return; }
++        qmi_config(); AX_IMU_DelayUs(20000u);
++        return;
++    }
++    for (addr=0x68u; addr<=0x69u; ++addr) {
++        if (probe(addr,0x75u,0x68u)) { address=addr; kind=AX_IMU_MPU6050; break; }
++    }
++    if (kind!=AX_IMU_MPU6050) return;
++    ready=1u;
++    if (!write_reg(0x6bu,0x80u)) return;
++    AX_IMU_DelayUs(100000u);
++    if (!write_reg(0x6bu,1u) || !write_reg(0x6cu,0u) ||
++        !write_reg(0x1bu,8u) || !write_reg(0x1cu,0u) ||
++        !write_reg(0x1au,2u) || !write_reg(0x19u,4u) ||
++        !write_reg(0x38u,0u) || !write_reg(0x23u,0u)) return;
++    AX_IMU_DelayUs(20000u);
+ }
+-
+-
+-/**
+-  * @简  述  MPU6050设置加速度量程 
+-  * @参  数  range： 加速度量程2g、4g、8g、16g
+-  *          可设置的加速度量程ACC_RANGE_2G、ACC_RANGE_4G、ACC_RANGE_8G、ACC_RANGE_16G
+-  * @返回值  无
+-  */
+ void AX_MPU6050_SetAccRange(uint8_t range)
+ {
+-	MPU6050_WriteRegister(MPU6050_ACCEL_CFG_REG,range<<3);
++    if (range>3u || !ready) return;
++    acc_range=range;
++    if (kind==AX_IMU_QMI8658) qmi_config();
++    else (void)write_reg(0x1cu,(uint8_t)(range<<3));
+ }
+-
+-
+-/**
+-  * @简  述  MPU6050设置陀螺仪量程
+-  * @参  数  range 陀螺仪量程250°/S、500°/S、1000°/S、2000°/S
+-  *          可设置的陀螺仪量程GYRO_RANGE_250、GYRO_RANGE_500、GYRO_RANGE_1000、GYRO_RANGE_2000	
+-  * @返回值  无
+-  */
+ void AX_MPU6050_SetGyroRange(uint8_t range)
+ {
+-	MPU6050_WriteRegister(MPU6050_GYRO_CFG_REG,range<<3);
++    if (range>3u || !ready) return;
++    gyro_range=range;
++    if (kind==AX_IMU_QMI8658) qmi_config();
++    else (void)write_reg(0x1bu,(uint8_t)(range<<3));
+ }
+-
+-/**
+-  * @简  述  MPU6050设置陀螺仪采样率
+-  * @参  数  smplrate 陀螺仪采样率，范围10~1000Hz	  
+-  * @返回值  无
+-  */
+-void AX_MPU6050_SetGyroSmplRate(uint16_t smplrate)
+-{	
+-	if(smplrate>1000)
+-		smplrate = 1000;
+-	if(smplrate<10)
+-		smplrate = 10;
+-	
+-	MPU6050_WriteRegister(MPU6050_SAMPLE_RATE_REG,(uint8_t)(1000/smplrate -1));	
++void AX_MPU6050_SetGyroSmplRate(uint16_t rate)
++{
++    if (!ready || rate==0u) return;
++    if (kind==AX_IMU_QMI8658) {
++        qmi_odr = rate>250u ? 4u : rate>125u ? 5u : rate>62u ? 6u : 7u;
++        qmi_config();
++    } else {
++        if (rate>1000u) rate=1000u;
++        if (rate<4u) rate=4u;
++        (void)write_reg(0x19u,(uint8_t)(1000u/rate-1u));
++    }
+ }
+-
+-/**
+-  * @简  述  MPU6050设置低通滤波器带宽
+-  * @参  数  bandwidth 低通滤波器带宽
+-  *          可设置的带宽： DLPF_ACC184_GYRO188、DLPF_ACC94_GYRO98、DLPF_ACC44_GYRO42、
+-  *                        DLPF_ACC21_GYRO20、DLPF_ACC10_GYRO10、DLPF_ACC5_GYRO5
+-  * @返回值  无
+-  */
+ void AX_MPU6050_SetDLPF(uint8_t bandwidth)
+ {
+-	MPU6050_WriteRegister(MPU6050_CFG_REG,bandwidth);
++    if (!ready || bandwidth<1u || bandwidth>6u) return;
++    if (kind==AX_IMU_MPU6050) (void)write_reg(0x1au,bandwidth);
++    /* QMI uses the enabled LPF mode configured in qmi_config, not MPU registers. */
+ }
+-
+-/**
+-  * @简  述  MPU6050获取传感器温度值
+-  * @参  数  无	  
+-  * @返回值  传感器温度值。
+-  */
+-float AX_MPU6050_GetTempValue(void)
+-{	
+-	uint8_t buf[2];
+-	int16_t tmp;
+-
+-	MPU6050_ReadRegister(MPU6050_TEMP_OUTH_REG,buf,2);
+-
+-	tmp = (buf[0]<<8)| buf[1];
+-	
+-	return ( 36.53f + ((double)tmp/340.0f) );	
++static void read_axes(uint8_t reg, int16_t *data, uint8_t gyro)
++{
++    uint8_t raw[6]={0u};
++    unsigned i;
++    int32_t value;
++    if (!data) return;
++    data[0]=data[1]=data[2]=0;
++    if (!read_reg(reg,raw,6u)) return;
++    for (i=0u;i<3u;++i) {
++        if (kind==AX_IMU_QMI8658) {
++            value=(int16_t)((uint16_t)raw[2u*i] | ((uint16_t)raw[2u*i+1u]<<8));
++            /* Native +/-512 dps -> the existing +/-500 dps protocol, etc. */
++            if (gyro) value=value*128/125;
++        } else {
++            value=(int16_t)(((uint16_t)raw[2u*i]<<8) | raw[2u*i+1u]);
++        }
++        if (value>32767) value=32767;
++        if (value< -32768) value= -32768;
++        data[i]=(int16_t)value;
++    }
+ }
+-
+-
+-/**
+-  * @简  述  MPU6050获取三轴加速度寄存器输出值
+-  * @参  数  pbuf：读取的数据缓冲区指针 
+-  * @返回值  无
+-  */
+-void AX_MPU6050_GetAccData(int16_t *pbuf)
+-{	
+-	uint8_t buf[6];
+-	
+-	//读取加速度数据
+-	MPU6050_ReadRegister(MPU6050_ACCEL_XOUTH_REG,buf,6);
+-	
+-    pbuf[0] = (buf[0] << 8) | buf[1];
+-    pbuf[1] = (buf[2] << 8) | buf[3];
+-    pbuf[2] = (buf[4] << 8) | buf[5];	
++void AX_MPU6050_GetAccData(int16_t *data)
++{
++    read_axes(kind==AX_IMU_QMI8658 ? 53u : 0x3bu,data,0u);
+ }
+-
+-/**
+-  * @简  述  MPU6050获取三轴陀螺仪寄存器输出值
+-  * @参  数  pbuf：读取的数据缓冲区指针 
+-  * @返回值  无
+-  */
+-void AX_MPU6050_GetGyroData(int16_t *pbuf)
+-{	
+-	uint8_t buf[6];
+-	
+-	//读取陀螺仪数据
+-	MPU6050_ReadRegister(MPU6050_GYRO_XOUTH_REG,buf,6);
+-    pbuf[0] = (buf[0] << 8) | buf[1];
+-    pbuf[1] = (buf[2] << 8) | buf[3];
+-    pbuf[2] = (buf[4] << 8) | buf[5];	
++void AX_MPU6050_GetGyroData(int16_t *data)
++{
++    read_axes(kind==AX_IMU_QMI8658 ? 59u : 0x43u,data,1u);
+ }
+-
+-
+-//--------------------------I2C 初始化操作函数-----------------------------------------
+-
+-/**
+-  * @简  述  产生IIC起始信号
+-  * @参  数  无
+-  * @返回值  返回状态
+-  */
+-static uint8_t IIC_Start(void)
++float AX_MPU6050_GetTemp(void)
+ {
+-	//SDA线输出
+-	SDA_OUT();     
+-	
+-	//START信号: 当SCL为高时, SDA从高变成低, 表示起始信号
+-	IIC_SDA=1;
+-	
+-	if(!READ_SDA)
+-	{
+-		return 0;	
+-	}
+-		
+-	IIC_SCL=1;
+-	AX_Delayus(1);
+-	
+- 	IIC_SDA=0;
+-	if(READ_SDA)
+-		return 0;
+-	
+-	AX_Delayus(1);
+-	
+-	//钳住I2C总线，准备发送或接收数据 
+-	IIC_SCL=0;
+-	
+-	return 1;
++    uint8_t raw[2]={0u};
++    int16_t value;
++    if (!read_reg(kind==AX_IMU_QMI8658 ? 51u : 0x41u,raw,2u)) return 0.0f;
++    if (kind==AX_IMU_QMI8658) {
++        value=(int16_t)((uint16_t)raw[0] | ((uint16_t)raw[1]<<8));
++        return value/256.0f;
++    }
++    value=(int16_t)(((uint16_t)raw[0]<<8) | raw[1]);
++    return 36.53f+value/340.0f;
+ }
+-
+-/**
+-  * @简  述  产生IIC停止信号
+-  * @参  数  无
+-  * @返回值  无
+-  */	  
+-static void IIC_Stop(void)
+-{
+-	//SDA线输出
+-	SDA_OUT(); 
+-	
+-	//STOP信号: 当SCL为高时, SDA从低变成高, 表示停止信号
+-	IIC_SCL=0;
+-	IIC_SDA=0;
+- 	AX_Delayus(1);
+-	
+-	//发送I2C总线结束信号
+-	IIC_SCL=1; 
+-	IIC_SDA=1;
+-	AX_Delayus(1);							   	
+-}
+-
+-/**
+-  * @简  述  等待应答信号到来
+-  * @参  数  无
+-  * @返回值  0，接收应答成功  1，接收应答失败
+-  */
+-static uint8_t  IIC_Wait_Ack(void)
+-{
+-	uint8_t ucErrTime=0;
+-	
+-	//SDA设置为输入  
+-	SDA_IN();     
+-	
+-	//主机释放SDA线(此时外部器件可以拉低SDA线)
+-	IIC_SDA=1;
+-	AX_Delayus(1);	
+-	
+-	//SCL=1, 此时从机可以返回ACK
+-	IIC_SCL=1;
+-	AX_Delayus(1);	
+-	
+-	//等待应答
+-	while(READ_SDA)
+-	{
+-		ucErrTime++;
+-		if(ucErrTime>250)
+-		{
+-			IIC_Stop();
+-			return 0;
+-		}
+-		
+-	    //AX_Delayus(1);
+-	}
+-	
+-	//SCL=0, 结束ACK检查	
+-	IIC_SCL=0;
+-	AX_Delayus(1);
+-	
+-	return 1;  
+-} 
+-
+-/**
+-  * @简  述  产生ACK应答产生IIC起始信号
+-  * @参  数  无
+-  * @返回值  无
+-  */
+-static void IIC_Ack(void)
+-{
+-	IIC_SCL=0;
+-	
+-	//SDA线输出
+-	SDA_OUT();
+-	
+-	IIC_SDA=0;
+-	AX_Delayus(1);
+-	
+-	IIC_SCL=1;
+-	AX_Delayus(1);
+-	IIC_SCL=0;
+-}
+-
+-/**
+-  * @简  述  产生NACK应答
+-  * @参  数  无
+-  * @返回值  无
+-  */	    
+-static void IIC_NAck(void)
+-{
+-	IIC_SCL=0;
+-	
+-	//SDA线输出
+-	SDA_OUT();
+-	
+-	IIC_SDA=1;
+-	AX_Delayus(1);
+-	
+-	IIC_SCL=1;
+-	AX_Delayus(1);
+-	IIC_SCL=0;
+-}
+-
+-/**
+-  * @简  述  IIC发送一个字节,返回从机有无应答
+-  * @参  数  data: 要发送的数据
+-  * @返回值  无
+-  */		  
+-static void IIC_Send_Byte(uint8_t data)
+-{                        
+-    uint8_t t;   
+-	
+-	//SDA线输出
+-	SDA_OUT();
+-
+-    //拉低时钟开始数据传输
+-    IIC_SCL=0;
+-	
+-    for(t=0; t<8; t++)
+-    {   
+-		//高位先发送		
+-        IIC_SDA=(data&0x80)>>7;
+-  
+-		AX_Delayus(1);   
+-		IIC_SCL=1;
+-		AX_Delayus(1); 
+-		IIC_SCL=0;	
+-		AX_Delayus(1);
+-		
+-	    //左移1位,用于下一次发送		
+-		data<<=1; 
+-    }	 
+-} 	 
+-  
+-/**
+-  * @简  述  IIC读取一个字节
+-  * @参  数  ack:  ack=1时，发送ack; ack=0时，发送nack
+-  * @返回值  接收到的数据
+-  */
+-static uint8_t IIC_Read_Byte(uint8_t ack)
+-{
+-	unsigned char i,receive=0;
+-	
+-	//SDA设置为输入
+-	SDA_IN();
+-	
+-	//接收1个字节数据
+-    for(i=0;i<8;i++ )
+-	{
+-		//高位先输出,所以先收到的数据位要左移
+-		receive<<=1;
+-		
+-        IIC_SCL=0; 
+-        AX_Delayus(2);
+-		IIC_SCL=1;
+-        
+-        if(READ_SDA)
+-		{
+-			receive++; 
+-		}
+-		
+-		AX_Delayus(2); 
+-    }	
+-	
+-    if (ack)
+-    {
+-        IIC_Ack();  //发送ACK
+-    }
+-    else
+-    {
+-        IIC_NAck();   //发送NACK
+-    }
+-
+-    return receive;
+-}
+-
+-
+-/**
+-  * @简  述  写入指定地址指定长度数据
+-  * @参  数  dev_addr：设备地址
+-  *          reg_addr：寄存器地址
+-  *          len：数据长度
+-  *          data：数据内容
+-  * @返回值  返回结果
+-  */
+-static uint8_t IIC_Write(uint8_t dev_addr, uint8_t reg_addr, uint8_t len, const uint8_t *data)
+-{
+-	int i;
+-	
+-    if (!IIC_Start())
+-        return 1;
+-	
+-    IIC_Send_Byte(dev_addr << 1 );
+-	
+-    if (!IIC_Wait_Ack()) 
+-	{
+-        IIC_Stop();
+-        return 1;
+-    }
+-	
+-    IIC_Send_Byte(reg_addr);
+-    IIC_Wait_Ack();
+-	
+-	for (i = 0; i < len; i++) 
+-	{
+-        IIC_Send_Byte(data[i]);
+-        if (!IIC_Wait_Ack()) 
+-		{
+-            IIC_Stop();
+-            return 0;
+-        }
+-    }
+-	
+-    IIC_Stop();
+-    return 0;
+-}
+-
+-/**
+-  * @简  述  读取指定地址指定长度数据
+-  * @参  数  dev_addr：设备地址
+-  *          reg_addr：寄存器地址
+-  *          len：数据长度
+-  *          data：数据内容
+-  * @返回值  返回结果
+-  */
+-static uint8_t IIC_Read(uint8_t dev_addr, uint8_t reg_addr, uint8_t len, uint8_t *data)
+-{
+-    if (!IIC_Start())
+-        return 1;
+-	
+-    IIC_Send_Byte(dev_addr << 1);
+-    if (!IIC_Wait_Ack()) 
+-	{
+-        IIC_Stop();
+-        return 1;
+-    }
+-	
+-    IIC_Send_Byte(reg_addr);
+-    IIC_Wait_Ack();
+-	
+-    IIC_Start();
+-    IIC_Send_Byte((dev_addr << 1)+1);
+-    IIC_Wait_Ack();
+-    while (len) 
+-	{
+-        if (len == 1)
+-            *data = IIC_Read_Byte(0);
+-        else
+-            *data = IIC_Read_Byte(1);
+-		
+-        data++;
+-        len--;
+-    }
+-	
+-    IIC_Stop();
+-    return 0;
+-}
+-
+-/**
+-  * @简  述  MPU6050写寄存器。
+-  * @参  数  reg_addr：寄存器地址
+-  *          pdata：数据内容
+-  *          len：数据长度
+-  * @返回值  无
+-  */
+-static void MPU6050_WriteRegister(uint8_t reg_address, uint8_t data)
+-{
+-	IIC_Write(MPU6050_ADDR,reg_address,1,&data);
+-}
+-
+-/**
+-  * @简  述  MPU6050读寄存器。
+-  * @参  数  无	  
+-  * @返回值  无
+-  */
+-static void MPU6050_ReadRegister(uint8_t reg_address, uint8_t *pdata, uint16_t len)
+-{
+-	IIC_Read(MPU6050_ADDR,reg_address,len,pdata);
+-}
+-
+-
+-/******************* (C) 版权 2023 XTARK **************************************/
++uint8_t AX_MPU6050_IsReady(void) { return ready; }
++AX_IMU_Kind AX_MPU6050_GetKind(void) { return kind; }
+--- a/Driver/ax_mpu6050.h
++++ b/Driver/ax_mpu6050.h
+@@ -1,134 +1,33 @@
+-/**			                                                    
+-		   ____                    _____ _______ _____       XTARK@塔克创新
+-		  / __ \                  / ____|__   __|  __ \ 
+-		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
+-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
+-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+-		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
+-				| |                                     
+-				|_|                OpenCTR   机器人控制器
+-									 
+-  ****************************************************************************** 
+-  *           
+-  * 版权所有： XTARK@塔克创新  版权所有，盗版必究
+-  * 公司网站： www.xtark.cn   www.tarkbot.com
+-  * 淘宝店铺： https://xtark.taobao.com  
+-  * 塔克微信： 塔克创新（关注公众号，获取最新更新资讯）
+-  *      
+-  ******************************************************************************
+-  * @作  者  Musk Han@XTARK
+-  * @版  本  V1.0
+-  * @内  容  MPU6050 操作
+-  *
+-  ******************************************************************************
+-  */
+-  
+-  
+-/* Define to prevent recursive inclusion -------------------------------------*/
+-#ifndef __AX_MPU6050_H
+-#define __AX_MPU6050_H
++#ifndef AX_MPU6050_COMPAT_H
++#define AX_MPU6050_COMPAT_H
++#include <stdint.h>
+ 
+-/* Includes ------------------------------------------------------------------*/
+-#include "stm32f4xx.h"
+-
+-#define	MPU6050_ADDR    0x68    //MPU6050地址
+-
+-//MPU6050寄存器地址
+-#define MPU6050_SELF_TESTX_REG		0X0D	//自检寄存器X
+-#define MPU6050_SELF_TESTY_REG		0X0E	//自检寄存器Y
+-#define MPU6050_SELF_TESTZ_REG		0X0F	//自检寄存器Z
+-#define MPU6050_SELF_TESTA_REG		0X10	//自检寄存器A
+-#define MPU6050_SAMPLE_RATE_REG		0X19	//采样频率分频器
+-#define MPU6050_CFG_REG				0X1A	//配置寄存器
+-#define MPU6050_GYRO_CFG_REG		0X1B	//陀螺仪配置寄存器
+-#define MPU6050_ACCEL_CFG_REG		0X1C	//加速度计配置寄存器
+-#define MPU6050_MOTION_DET_REG		0X1F	//运动检测阀值设置寄存器
+-#define MPU6050_FIFO_EN_REG			0X23	//FIFO使能寄存器
+-#define MPU6050_I2CMST_CTRL_REG		0X24	//IIC主机控制寄存器
+-#define MPU6050_I2CSLV0_ADDR_REG	0X25	//IIC从机0器件地址寄存器
+-#define MPU6050_I2CSLV0_REG			0X26	//IIC从机0数据地址寄存器
+-#define MPU6050_I2CSLV0_CTRL_REG	0X27	//IIC从机0控制寄存器
+-#define MPU6050_I2CSLV1_ADDR_REG	0X28	//IIC从机1器件地址寄存器
+-#define MPU6050_I2CSLV1_REG			0X29	//IIC从机1数据地址寄存器
+-#define MPU6050_I2CSLV1_CTRL_REG	0X2A	//IIC从机1控制寄存器
+-#define MPU6050_I2CSLV2_ADDR_REG	0X2B	//IIC从机2器件地址寄存器
+-#define MPU6050_I2CSLV2_REG			0X2C	//IIC从机2数据地址寄存器
+-#define MPU6050_I2CSLV2_CTRL_REG	0X2D	//IIC从机2控制寄存器
+-#define MPU6050_I2CSLV3_ADDR_REG	0X2E	//IIC从机3器件地址寄存器
+-#define MPU6050_I2CSLV3_REG			0X2F	//IIC从机3数据地址寄存器
+-#define MPU6050_I2CSLV3_CTRL_REG	0X30	//IIC从机3控制寄存器
+-#define MPU6050_I2CSLV4_ADDR_REG	0X31	//IIC从机4器件地址寄存器
+-#define MPU6050_I2CSLV4_REG			0X32	//IIC从机4数据地址寄存器
+-#define MPU6050_I2CSLV4_DO_REG		0X33	//IIC从机4写数据寄存器
+-#define MPU6050_I2CSLV4_CTRL_REG	0X34	//IIC从机4控制寄存器
+-#define MPU6050_I2CSLV4_DI_REG		0X35	//IIC从机4读数据寄存器
+-#define MPU6050_I2CMST_STA_REG		0X36	//IIC主机状态寄存器
+-#define MPU6050_INTBP_CFG_REG		0X37	//中断/旁路设置寄存器
+-#define MPU6050_INT_EN_REG			0X38	//中断使能寄存器
+-#define MPU6050_INT_STA_REG			0X3A	//中断状态寄存器
+-#define MPU6050_ACCEL_XOUTH_REG		0X3B	//加速度值,X轴高8位寄存器
+-#define MPU6050_ACCEL_XOUTL_REG		0X3C	//加速度值,X轴低8位寄存器
+-#define MPU6050_ACCEL_YOUTH_REG		0X3D	//加速度值,Y轴高8位寄存器
+-#define MPU6050_ACCEL_YOUTL_REG		0X3E	//加速度值,Y轴低8位寄存器
+-#define MPU6050_ACCEL_ZOUTH_REG		0X3F	//加速度值,Z轴高8位寄存器
+-#define MPU6050_ACCEL_ZOUTL_REG		0X40	//加速度值,Z轴低8位寄存器
+-#define MPU6050_TEMP_OUTH_REG		0X41	//温度值高八位寄存器
+-#define MPU6050_TEMP_OUTL_REG		0X42	//温度值低8位寄存器
+-#define MPU6050_GYRO_XOUTH_REG		0X43	//陀螺仪值,X轴高8位寄存器
+-#define MPU6050_GYRO_XOUTL_REG		0X44	//陀螺仪值,X轴低8位寄存器
+-#define MPU6050_GYRO_YOUTH_REG		0X45	//陀螺仪值,Y轴高8位寄存器
+-#define MPU6050_GYRO_YOUTL_REG		0X46	//陀螺仪值,Y轴低8位寄存器
+-#define MPU6050_GYRO_ZOUTH_REG		0X47	//陀螺仪值,Z轴高8位寄存器
+-#define MPU6050_GYRO_ZOUTL_REG		0X48	//陀螺仪值,Z轴低8位寄存器
+-#define MPU6050_I2CSLV0_DO_REG		0X63	//IIC从机0数据寄存器
+-#define MPU6050_I2CSLV1_DO_REG		0X64	//IIC从机1数据寄存器
+-#define MPU6050_I2CSLV2_DO_REG		0X65	//IIC从机2数据寄存器
+-#define MPU6050_I2CSLV3_DO_REG		0X66	//IIC从机3数据寄存器
+-#define MPU6050_I2CMST_DELAY_REG	0X67	//IIC主机延时管理寄存器
+-#define MPU6050_SIGPATH_RST_REG		0X68	//信号通道复位寄存器
+-#define MPU6050_MDETECT_CTRL_REG	0X69	//运动检测控制寄存器
+-#define MPU6050_USER_CTRL_REG		0X6A	//用户控制寄存器
+-#define MPU6050_PWR_MGMT1_REG		0X6B	//电源管理寄存器1
+-#define MPU6050_PWR_MGMT2_REG		0X6C	//电源管理寄存器2
+-#define MPU6050_FIFO_CNTH_REG		0X72	//FIFO计数寄存器高八位
+-#define MPU6050_FIFO_CNTL_REG		0X73	//FIFO计数寄存器低八位
+-#define MPU6050_FIFO_RW_REG			0X74	//FIFO读写寄存器
+-#define MPU6050_DEVICE_ID_REG		0X75	//器件ID寄存器
+-
+-//加速度量程
+-#define  AX_ACC_RANGE_2G  0  //2g	 
+-#define  AX_ACC_RANGE_4G  1  //4g
+-#define  AX_ACC_RANGE_8G  2  //8g	 
+-#define  AX_ACC_RANGE_16G 3  //16g
+-
+-//陀螺仪量程
+-#define  AX_GYRO_RANGE_250  0  //250度/秒	 
+-#define  AX_GYRO_RANGE_500  1  //500度/秒
+-#define  AX_GYRO_RANGE_1000 2  //1000度/秒	 
+-#define  AX_GYRO_RANGE_2000 3  //2000度/秒	 
+-
+-//带宽
+-#define  AX_DLPF_ACC184_GYRO188 1 //加速度带宽184Hz 陀螺仪带宽188Hz
+-#define  AX_DLPF_ACC94_GYRO98   2 //加速度带宽94Hz 陀螺仪带宽98Hz
+-#define  AX_DLPF_ACC44_GYRO42   3 //加速度带宽44Hz 陀螺仪带宽42Hz
+-#define  AX_DLPF_ACC21_GYRO20   4 //加速度带宽21Hz 陀螺仪带宽20Hz
+-#define  AX_DLPF_ACC10_GYRO10   5 //加速度带宽10Hz 陀螺仪带宽10Hz
+-#define  AX_DLPF_ACC5_GYRO5     6 //加速度带宽5Hz 陀螺仪带宽5Hz 
+-
+-
+-/*** OpenCTR驱动接口函数  M-Sensor运动传感器操作函数 **********/
+-void AX_MPU6050_Init(void);    //MPU6050传感器初始化
+-
+-//设置参数函数
+-void AX_MPU6050_SetAccRange(uint8_t range);  //MPU6050设置加速度量程 
+-void AX_MPU6050_SetGyroRange(uint8_t range);  //MPU6050设置陀螺仪量程
+-void AX_MPU6050_SetGyroSmplRate(uint16_t smplrate);  //MPU6050设置陀螺仪采样率
+-void AX_MPU6050_SetDLPF(uint8_t bandwidth);  //MPU6050设置低通滤波器带宽
+-
+-//获取数据
+-void AX_MPU6050_GetAccData(int16_t *pbuf);  //MPU6050获取加速度寄存器输出值
+-void AX_MPU6050_GetGyroData(int16_t *pbuf); //MPU6050获取陀螺仪寄存器输出值
+-
++/* Compatibility API: QMI8658 and MPU6050 are identified by their chip IDs.
++ * Output ranges keep the existing host protocol: acc range and 250/500/... dps.
++ */
++#define AX_ACC_RANGE_2G 0u
++#define AX_ACC_RANGE_4G 1u
++#define AX_ACC_RANGE_8G 2u
++#define AX_ACC_RANGE_16G 3u
++#define AX_GYRO_RANGE_250 0u
++#define AX_GYRO_RANGE_500 1u
++#define AX_GYRO_RANGE_1000 2u
++#define AX_GYRO_RANGE_2000 3u
++#define AX_DLPF_ACC184_GYRO188 1u
++#define AX_DLPF_ACC94_GYRO98 2u
++#define AX_DLPF_ACC44_GYRO42 3u
++#define AX_DLPF_ACC21_GYRO20 4u
++#define AX_DLPF_ACC10_GYRO10 5u
++#define AX_DLPF_ACC5_GYRO5 6u
++typedef enum { AX_IMU_NONE=0, AX_IMU_MPU6050=1, AX_IMU_QMI8658=2 } AX_IMU_Kind;
++void AX_MPU6050_Init(void);
++void AX_MPU6050_SetAccRange(uint8_t range);
++void AX_MPU6050_SetGyroRange(uint8_t range);
++void AX_MPU6050_SetGyroSmplRate(uint16_t rate);
++void AX_MPU6050_SetDLPF(uint8_t bandwidth);
++float AX_MPU6050_GetTemp(void);
++void AX_MPU6050_GetAccData(int16_t *data);
++void AX_MPU6050_GetGyroData(int16_t *data);
++uint8_t AX_MPU6050_IsReady(void);
++AX_IMU_Kind AX_MPU6050_GetKind(void);
+ #endif
+-
+-/******************* (C) 版权 2023 XTARK **************************************/
+--- a/Driver/ax_uart2.c
++++ b/Driver/ax_uart2.c
+@@ -46,9 +46,11 @@
+ 
+ #include "ax_robot.h"
+ 
++#if !APP_KEY_TURN_TEST
+ static uint8_t uart2_rx_con=0;       //接收计数器
+ static uint8_t uart2_rx_checksum;    //帧头部分校验和
+ static uint8_t uart2_rx_buf[40];     //接收缓冲，数据内容小于等于32Byte
++#endif
+ static uint8_t uart2_tx_buf[40];     //发送缓冲
+ 
+ /**
+@@ -111,6 +113,10 @@
+   */
+ void USART2_IRQHandler(void)
+ {
++#if APP_KEY_TURN_TEST
++    if (USART_GetITStatus(USART2,USART_IT_RXNE)!=RESET) (void)USART_ReceiveData(USART2);
++#else
++
+ 	uint8_t Res;
+ 	
+ 	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //接收中断
+@@ -244,6 +250,8 @@
+ 		
+     USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+ 	} 
++
++#endif
+ }
+ 
+ 
+--- a/Driver/ax_uart3.c
++++ b/Driver/ax_uart3.c
+@@ -46,9 +46,11 @@
+ 
+ #include "ax_robot.h"
+ 
++#if !APP_KEY_TURN_TEST
+ static uint8_t uart3_rx_con=0;       //接收计数器
+ static uint8_t uart3_rx_checksum;    //帧头部分校验和
+ static uint8_t uart3_rx_buf[40];     //接收缓冲，数据内容小于等于32Byte
++#endif
+ static uint8_t uart3_tx_buf[40];     //发送缓冲
+ 
+ /**
+@@ -112,6 +114,10 @@
+   */
+ void USART3_IRQHandler(void)
+ {
++#if APP_KEY_TURN_TEST
++    if (USART_GetITStatus(USART3,USART_IT_RXNE)!=RESET) (void)USART_ReceiveData(USART3);
++#else
++
+ 	uint8_t Res;
+ 	
+ 	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)  //接收中断
+@@ -244,6 +250,8 @@
+ 		
+ 		USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
+ 	} 
++
++#endif
+ }
+ 
+ /**
+--- a/Project/keytest.uvprojx
++++ b/Project/keytest.uvprojx
+@@ -1,4 +1,4 @@
+-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
++<?xml version='1.0' encoding='utf-8'?>
+ <Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">
+   <SchemaVersion>2.1</SchemaVersion>
+   <Header>### uVision Project, (C) Keil Software</Header>
+@@ -604,7 +604,7 @@
+               <FileType>1</FileType>
+               <FilePath>..\Driver\ax_ps2.c</FilePath>
+             </File>
+-          </Files>
++          <File><FileName>ax_imu_bus.c</FileName><FileType>1</FileType><FilePath>..\Driver\ax_imu_bus.c</FilePath></File><File><FileName>ax_encoder_extended.c</FileName><FileType>1</FileType><FilePath>..\Driver\ax_encoder_extended.c</FilePath></File></Files>
+         </Group>
+         <Group>
+           <GroupName>Libraries</GroupName>
+--- a/Robot/ax_board_config.h
++++ b/Robot/ax_board_config.h
+@@ -0,0 +1,13 @@
++#ifndef AX_BOARD_CONFIG_H
++#define AX_BOARD_CONFIG_H
++
++/* 1: H60 V3.7 (PE1/PE4 keys, PB0/PB1 LEDs, PE0 buzzer).
++ * 0: legacy H60 V3.2 (PE0 key, PD3/PD4 LEDs, PE1 buzzer).
++ * Mechanical parameters come from the competition training manual.
++ * IMU type is detected from its chip ID, not inferred from either manual.
++ */
++#ifndef AX_BOARD_H60_V37
++#define AX_BOARD_H60_V37 1
++#endif
++
++#endif
+--- a/Robot/ax_chassis_config.h
++++ b/Robot/ax_chassis_config.h
+@@ -0,0 +1,28 @@
++#ifndef AX_CHASSIS_CONFIG_H
++#define AX_CHASSIS_CONFIG_H
++
++/* Competition training manual: MC520P30, magnetic encoder, 65 mm tires.
++ * Track and skid factor are document baselines; calibrate on the real car.
++ */
++#define AX_COMP_WHEEL_DIAMETER_M  0.065
++#define AX_COMP_ENCODER_COUNTS   122880.0
++#define AX_COMP_TRACK_M          0.200
++#define AX_COMP_TRACK_FACTOR     1.75
++
++/* Training manual section 9.2, P30 wiring. Separate feedback and PWM signs. */
++#define AX_FWD_ENCODER_SIGN_A  ( 1)
++#define AX_FWD_ENCODER_SIGN_B  (-1)
++#define AX_FWD_ENCODER_SIGN_C  ( 1)
++#define AX_FWD_ENCODER_SIGN_D  (-1)
++#define AX_FWD_MOTOR_SIGN_A    (-1)
++#define AX_FWD_MOTOR_SIGN_B    (-1)
++#define AX_FWD_MOTOR_SIGN_C    ( 1)
++#define AX_FWD_MOTOR_SIGN_D    ( 1)
++
++/* Initial verification limits, not a claim of measured tracking accuracy.
++ * Encoder feedback uses 32-bit reads, including TIM3/TIM4 rollover extension.
++ */
++#define AX_FWD_MAX_WHEEL_MPS   0.12f
++#define AX_CONTROL_MAX_GAP_MS  40u
++
++#endif
+--- a/Robot/ax_kinematics.c
++++ b/Robot/ax_kinematics.c
+@@ -103,20 +103,29 @@
+   */
+ void AX_ROBOT_Kinematics(void)
+ {
+-	
+-	//四轮差速由于轮胎摩擦力较大，采用60减速比电机，
+-	//注意，60减速比电机转向与30减速比刚好反向
+-
+-	//通过编码器获取车轮实时转速m/s
+-	R_Wheel_A.RT = (float)-((int16_t)AX_ENCODER_A_GetCounter()*FWD_WHEEL_SCALE);
+-	AX_ENCODER_A_SetCounter(0);
+-	R_Wheel_B.RT = (float) ((int16_t)AX_ENCODER_B_GetCounter()*FWD_WHEEL_SCALE);
++    float peak, scale;
++
++    if (!(ax_control_dt_s>0.0f && ax_control_dt_s<=0.04001f)) {
++        ax_motion_fault=2u; ax_robot_move_enable=0u; AX_ROBOT_Stop(); return;
++    }
++	
++	/* Competition P30: signs and encoder scale come from ax_chassis_config.h. */
++
++	//通过编码器获取车轮实时转速m/s
++	R_Wheel_A.RT = (float)(AX_FWD_ENCODER_SIGN_A * AX_ENCODER_A_GetCounter() * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s));
++	AX_ENCODER_A_SetCounter(0);
++	R_Wheel_B.RT = (float)(AX_FWD_ENCODER_SIGN_B * AX_ENCODER_B_GetCounter() * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s));
+ 	AX_ENCODER_B_SetCounter(0);		
+-	R_Wheel_C.RT = (float)-((int16_t)AX_ENCODER_C_GetCounter()*FWD_WHEEL_SCALE);
++	R_Wheel_C.RT = (float)(AX_FWD_ENCODER_SIGN_C * AX_ENCODER_C_GetCounter() * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s));
+ 	AX_ENCODER_C_SetCounter(0);
+-	R_Wheel_D.RT = (float) ((int16_t)AX_ENCODER_D_GetCounter()*FWD_WHEEL_SCALE);
++	R_Wheel_D.RT = (float)(AX_FWD_ENCODER_SIGN_D * AX_ENCODER_D_GetCounter() * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s));
+ 	AX_ENCODER_D_SetCounter(0);
+ 	
++    if (fabs(R_Wheel_A.RT)>0.25 || fabs(R_Wheel_B.RT)>0.25 ||
++        fabs(R_Wheel_C.RT)>0.25 || fabs(R_Wheel_D.RT)>0.25) {
++        ax_motion_fault=3u; ax_robot_move_enable=0u; AX_ROBOT_Stop(); return;
++    }
++
+ 	//调试输出轮子转速
+ 	//printf("@%f  %f   \r\n",R_Wheel_A.RT,R_Wheel_B.RT);
+ 	
+@@ -145,6 +154,18 @@
+ 	R_Wheel_D.TG = R_Vel.TG_FX + R_Vel.TG_FW*(FWD_WHEEL_BASE*FWD_WB_SCALE/2);
+ 	
+ 	
++    peak=(float)fabs(R_Wheel_A.TG);
++    if (fabs(R_Wheel_B.TG)>peak) peak=(float)fabs(R_Wheel_B.TG);
++    if (fabs(R_Wheel_C.TG)>peak) peak=(float)fabs(R_Wheel_C.TG);
++    if (fabs(R_Wheel_D.TG)>peak) peak=(float)fabs(R_Wheel_D.TG);
++    if (peak>AX_FWD_MAX_WHEEL_MPS) {
++        scale=AX_FWD_MAX_WHEEL_MPS/peak;
++        R_Wheel_A.TG*=scale; R_Wheel_B.TG*=scale;
++        R_Wheel_C.TG*=scale; R_Wheel_D.TG*=scale;
++        R_Vel.TG_FX*=scale; R_Vel.TG_FW*=scale;
++    }
++    if (R_Vel.TG_IX==0 && R_Vel.TG_IW==0) { AX_ROBOT_Stop(); return; }
++
+ 	//利用PID算法计算电机PWM值
+ 	R_Wheel_A.PWM = AX_SPEED_PidCtlA(R_Wheel_A.TG, R_Wheel_A.RT);   
+ 	R_Wheel_B.PWM = AX_SPEED_PidCtlB(R_Wheel_B.TG, R_Wheel_B.RT);  
+@@ -160,10 +181,10 @@
+ 	}
+ 	
+ 	//设置电机PWM值
+-	AX_MOTOR_A_SetSpeed(  R_Wheel_A.PWM);
+-	AX_MOTOR_B_SetSpeed(  R_Wheel_B.PWM);  
+-	AX_MOTOR_C_SetSpeed( -R_Wheel_C.PWM);
+-	AX_MOTOR_D_SetSpeed( -R_Wheel_D.PWM); 
++	AX_MOTOR_A_SetSpeed(AX_FWD_MOTOR_SIGN_A * R_Wheel_A.PWM);
++	AX_MOTOR_B_SetSpeed(AX_FWD_MOTOR_SIGN_B * R_Wheel_B.PWM);  
++	AX_MOTOR_C_SetSpeed(AX_FWD_MOTOR_SIGN_C * R_Wheel_C.PWM);
++	AX_MOTOR_D_SetSpeed(AX_FWD_MOTOR_SIGN_D * R_Wheel_D.PWM); 
+ 	
+ 	//输出调试信息
+ 	//printf("@%f  %f  %f %f  \r\n",R_Wheel_A.RT,R_Wheel_B.RT, R_Wheel_C.RT ,R_Wheel_D.RT);
+@@ -445,13 +466,14 @@
+   */
+ void AX_ROBOT_Stop(void)
+ {
+-	
+-	//设置电机PWM值
+-	AX_MOTOR_A_SetSpeed(0);
+-	AX_MOTOR_B_SetSpeed(0);  
+-	AX_MOTOR_C_SetSpeed(0);
+-	AX_MOTOR_D_SetSpeed(0);  
+-	
++    AX_MOTOR_A_SetSpeed(0); AX_MOTOR_B_SetSpeed(0);
++    AX_MOTOR_C_SetSpeed(0); AX_MOTOR_D_SetSpeed(0);
++    AX_SPEED_Reset();
++    R_Vel.TG_IX=R_Vel.TG_IY=R_Vel.TG_IW=0;
++    R_Wheel_A.TG=R_Wheel_B.TG=R_Wheel_C.TG=R_Wheel_D.TG=0.0f;
++    R_Wheel_A.PWM=R_Wheel_B.PWM=R_Wheel_C.PWM=R_Wheel_D.PWM=0;
++    AX_ENCODER_A_SetCounter(0); AX_ENCODER_B_SetCounter(0);
++    AX_ENCODER_C_SetCounter(0); AX_ENCODER_D_SetCounter(0);
+ }
+ 
+ 
+--- a/Robot/ax_robot.c
++++ b/Robot/ax_robot.c
+@@ -49,7 +49,7 @@
+ ROBOT_Light  R_Light;
+ 
+ //机器人速度数据
+-ROBOT_Velocity  R_Vel;
++
+ 
+ //机器人电池电压数据
+ uint16_t R_Bat_Vol;  
+@@ -65,6 +65,8 @@
+ 
+ //机器人运动使能开关,默认打开状态
+ uint8_t ax_robot_move_enable = 1;
++volatile uint8_t ax_motion_fault;
++float ax_control_dt_s=0.02f;
+ 
+ //IMU校准标志位
+ int8_t ax_imu_calibrate_flag = 0;
+@@ -144,6 +146,7 @@
+ {
+     static TickType_t started_at;
+     static uint8_t turning;
++    static key_turn_direction_t active_direction;
+     key_turn_direction_t direction;
+     AX_TurnStatus status;
+ 
+@@ -157,8 +160,12 @@
+         if (ax_control_mode == CTL_ROS && ax_robot_move_enable != 0 &&
+             (TickType_t)(xTaskGetTickCount() - started_at) <
+                 pdMS_TO_TICKS(KEY_TURN_DURATION_MS)) {
+-            AX_ROBOT_Kinematics();
+-            return;
++            status = active_direction==KEY_TURN_LEFT
++                ? AX_TURN_Left(KEY_TURN_SPEED_MPS,KEY_TURN_STRENGTH)
++                : AX_TURN_Right(KEY_TURN_SPEED_MPS,KEY_TURN_STRENGTH);
++            if (status==AX_TURN_OK || status==AX_TURN_LIMITED) {
++                AX_ROBOT_Kinematics(); return;
++            }
+         }
+         turning = 0u;
+     } else if (direction != KEY_TURN_NONE) {
+@@ -166,6 +173,7 @@
+                      ? AX_TURN_Left(KEY_TURN_SPEED_MPS, KEY_TURN_STRENGTH)
+                      : AX_TURN_Right(KEY_TURN_SPEED_MPS, KEY_TURN_STRENGTH);
+         if (status == AX_TURN_OK || status == AX_TURN_LIMITED) {
++            active_direction=direction;
+             started_at = xTaskGetTickCount();
+             turning = 1u;
+             AX_ROBOT_Kinematics();
+@@ -202,18 +210,28 @@
+ 
+ 	//用于保存上次时间。调用后系统自动更新
+ 	static portTickType PreviousWakeTime;
++    TickType_t last_cycle,now,gap;
+ 
+ 	//设置延时时间20ms，将时间转为节拍数 
+ 	const portTickType TimeIncrement = pdMS_TO_TICKS(20);
+ 	
+ 	//获取当前系统时间 
+ 	PreviousWakeTime = xTaskGetTickCount();
++    last_cycle=PreviousWakeTime;
+ 	
+ 	while(1)
+ 	{
+ 		
+ 		//调用绝对延时函数20ms,执行频率50HZ
+ 		vTaskDelayUntil(&PreviousWakeTime, TimeIncrement );
++        now=xTaskGetTickCount(); gap=now-last_cycle; last_cycle=now;
++        if (gap==0u || gap>pdMS_TO_TICKS(AX_CONTROL_MAX_GAP_MS)) {
++            ax_motion_fault=2u; ax_robot_move_enable=0u;
++        }
++        ax_control_dt_s=(gap ? gap : 1u)/(float)configTICK_RATE_HZ;
++        ROBOT_IMUHandle();
++        if (!AX_MPU6050_IsReady()) { ax_motion_fault=1u; ax_robot_move_enable=0u; }
++
+ 		
+ #if APP_KEY_TURN_TEST
+         Key_Turn_Test_Step();
+@@ -240,8 +258,7 @@
+ 		
+ #endif
+ 
+-		//获取PMU6050加速度数据
+-        ROBOT_IMUHandle();
++
+ 		
+ 		//数据发送
+ 		ROBOT_SendDataToRos();
+@@ -345,7 +362,8 @@
+ 	static uint16_t ax_bat_vol_cnt = 0; 
+ 	
+ 	//陀螺仪校准变量
+-	static int16_t gyro_data[3]; 
++	static int16_t gyro_data[3];
++    int32_t gyro_sum[3]; 
+ 	
+ 
+ 	while (1)
+@@ -385,7 +403,8 @@
+ 						AX_LED_Red_On();
+ 						
+ 						//任务挂起
+-						vTaskSuspend(Robot_Task_Handle);
++						ax_robot_move_enable=0u; AX_ROBOT_Stop();
++            vTaskSuspend(Robot_Task_Handle);
+ 						vTaskSuspend(Disp_Task_Handle);
+ 						
+ 						//电机速度设置为0
+@@ -431,12 +450,13 @@
+ 		if(ax_imu_calibrate_flag > 0)
+ 		{
+             //付零IMU校准变量
+-			ax_imu_gyro_offset[0] = 0;
+-			ax_imu_gyro_offset[1] = 0;
+-			ax_imu_gyro_offset[2] = 0;
++			ax_imu_gyro_offset[0] = 0; gyro_sum[0]=0;
++			ax_imu_gyro_offset[1] = 0; gyro_sum[1]=0;
++			ax_imu_gyro_offset[2] = 0; gyro_sum[2]=0;
+ 			
+ 			//机器人任务挂起
+-			vTaskSuspend(Robot_Task_Handle);
++			ax_robot_move_enable=0u; AX_ROBOT_Stop();
++            vTaskSuspend(Robot_Task_Handle);
+ 			
+ 			//蜂鸣器提示
+ 			AX_BEEP_On();
+@@ -457,15 +477,15 @@
+ 				AX_MPU6050_GetGyroData(gyro_data);
+ 				
+ 				//计算偏差和
+-				ax_imu_gyro_offset[0] += gyro_data[0];
+-				ax_imu_gyro_offset[1] += gyro_data[1];
+-				ax_imu_gyro_offset[2] += gyro_data[2]; 		
++				gyro_sum[0] += gyro_data[0];
++				gyro_sum[1] += gyro_data[1];
++				gyro_sum[2] += gyro_data[2]; 		
+ 			}
+ 			
+ 			//计算平均偏差值
+-			ax_imu_gyro_offset[0] = -ax_imu_gyro_offset[0]/10;
+-			ax_imu_gyro_offset[1] = -ax_imu_gyro_offset[1]/10;
+-			ax_imu_gyro_offset[2] = -ax_imu_gyro_offset[2]/10;
++			ax_imu_gyro_offset[0] = (int16_t)(-(gyro_sum[0]/10)>32767 ? 32767 : -(gyro_sum[0]/10));
++			ax_imu_gyro_offset[1] = (int16_t)(-(gyro_sum[1]/10)>32767 ? 32767 : -(gyro_sum[1]/10));
++			ax_imu_gyro_offset[2] = (int16_t)(-(gyro_sum[2]/10)>32767 ? 32767 : -(gyro_sum[2]/10));
+ 			
+ 			//关闭红灯
+ 			AX_LED_Red_Off();
+@@ -484,7 +504,8 @@
+ 		if(ax_light_save_flag > 0)
+ 		{
+ 			//机器人任务挂起
+-			vTaskSuspend(Robot_Task_Handle);
++			ax_robot_move_enable=0u; AX_ROBOT_Stop();
++            vTaskSuspend(Robot_Task_Handle);
+ 			
+ 			//更新数据
+ 			AX_EEPROM_WriteOneByte(0x20, R_Light.M);
+@@ -551,7 +572,9 @@
+ void Key_Task(void* parameter)
+ {	
+ 	uint8_t  i;
+-	int16_t  akm_offset;
++	#if (ROBOT_TYPE == ROBOT_AKM)
++    int16_t akm_offset;
++#endif
+ 	
+ 	while (1)
+ 	{		
+@@ -692,7 +715,8 @@
+ 					AX_EEPROM_WriteOneByte(0x00, 0x00);
+ 					
+ 					//任务挂起
+-					vTaskSuspend(Robot_Task_Handle);
++					ax_robot_move_enable=0u; AX_ROBOT_Stop();
++            vTaskSuspend(Robot_Task_Handle);
+ 					vTaskSuspend(Disp_Task_Handle);
+ 					
+ 					//蜂鸣器提示
+--- a/Robot/ax_robot.h
++++ b/Robot/ax_robot.h
+@@ -29,6 +29,8 @@
+ 
+ /* Includes ------------------------------------------------------------------*/	 
+ #include "stm32f4xx.h"
++#include "ax_chassis_config.h"
++#include "ax_board_config.h"
+ 
+ //C库函数的相关头文件
+ #include <stdio.h> 
+@@ -157,7 +159,7 @@
+ #define ROBOT_OMT   0x06   //三轮全向底盘
+ 
+ //机器人定义类型
+-#define ROBOT_TYPE   ROBOT_MEC
++#define ROBOT_TYPE   ROBOT_FWD
+ 
+ /******机器人参数*************************************/
+ 
+@@ -169,11 +171,11 @@
+ #define  MEC_WHEEL_SCALE          (PI*MEC_WHEEL_DIAMETER*PID_RATE/MEC_WHEEL_RESOLUTION) //轮子速度m/s与编码器转换系数
+ 
+ //四轮差速机器人参数
+-//由于轮胎摩擦力较大，采用60减速比电机，电机转向与30减速比相反
+-#define  FWD_WHEEL_BASE           0.200	     //轮距，左右轮的距离
+-#define  FWD_WB_SCALE             1.75       //轮距系数，轮距系数与机器人的总负载、轮胎与地面的相对摩擦系数、转弯半径及质心位置都是有关系是一个非常复杂的参数，所以常用的方法就是做实验
+-#define  FWD_WHEEL_DIAMETER	      0.100		 //轮子直径
+-#define  FWD_WHEEL_RESOLUTION     3120.0     //编码器分辨率(13线),减速比60,13x60x4=3120
++// Competition P30 / 1024-line magnetic encoder / 65 mm wheel, per training manual.
++#define  FWD_WHEEL_BASE           AX_COMP_TRACK_M
++#define  FWD_WB_SCALE             AX_COMP_TRACK_FACTOR
++#define  FWD_WHEEL_DIAMETER	      AX_COMP_WHEEL_DIAMETER_M
++#define  FWD_WHEEL_RESOLUTION     AX_COMP_ENCODER_COUNTS
+ #define  FWD_WHEEL_SCALE          (PI*FWD_WHEEL_DIAMETER*PID_RATE/FWD_WHEEL_RESOLUTION) //轮子速度m/s与编码器转换系数
+ 
+ //阿克曼机器人参数
+@@ -230,9 +232,9 @@
+ #define  ID_CANTX_MSG3    0x0123    //发送的机器人数据3
+ 
+ //机器人速度限制
+-#define R_VX_LIMIT  1500   //X轴速度限值 m/s*1000
++#define R_VX_LIMIT 120  /* bring-up forward limit, mm/s */
+ #define R_VY_LIMIT  1200   //Y轴速度限值 m/s*1000
+-#define R_VW_LIMIT  6280   //W旋转角速度限值 rad/s*1000
++#define R_VW_LIMIT 600  /* bring-up yaw limit, mrad/s */
+ 
+ //灯光模式
+ #define  LEFFECT1    0x01    //单色模式  
+@@ -251,6 +253,10 @@
+ //蜂鸣器鸣长短
+ #define  BEEP_SHORT   0x01    //蜂鸣器短鸣叫一声(200ms)
+ #define  BEEP_LONG    0x02    //蜂鸣器长鸣叫一声(1000ms)
++
++extern uint8_t ax_robot_move_enable;
++extern volatile uint8_t ax_motion_fault; /* 1=IMU, 2=timing, 3=overspeed, 4=task creation */
++extern float ax_control_dt_s;
+ 
+ //机器人关键全局变量
+ extern  ROBOT_Velocity  R_Vel; //机器人速度数据
+--- a/Robot/ax_speed.c
++++ b/Robot/ax_speed.c
+@@ -1,153 +1,33 @@
+-/**			                                                    
+-		   ____                    _____ _______ _____       XTARK@塔克创新
+-		  / __ \                  / ____|__   __|  __ \ 
+-		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
+-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
+-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+-		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
+-				| |                                     
+-				|_|                OpenCTR   机器人控制器
+-									 
+-  ****************************************************************************** 
+-  *           
+-  * 版权所有： XTARK@塔克创新  版权所有，盗版必究
+-  * 公司网站： www.xtark.cn   www.tarkbot.com
+-  * 淘宝店铺： https://xtark.taobao.com  
+-  * 塔克微信： 塔克创新（关注公众号，获取最新更新资讯）
+-  *      
+-  ******************************************************************************
+-  * @作  者  Musk Han@XTARK
+-  * @版  本  V1.0
+-  * @内  容  机器人轮子PID速度控制
+-  * 
+-  ******************************************************************************
+-  */
+-
+-/* Includes ------------------------------------------------------------------*/
+ #include "ax_speed.h"
+ #include "ax_robot.h"
++#include <float.h>
+ 
+-
+-/**
+-  * @简  述  电机PID控制函数
+-  * @参  数  spd_target:编码器速度目标值 ,范围（±250）
+-  *          spd_current: 编码器速度当前值
+-  * @返回值  电机PWM速度
+-  */
+-int16_t AX_SPEED_PidCtlA(float spd_target, float spd_current)
++/* Keep the original incremental controller gains, retain fractional PWM,
++ * and clamp before conversion. Stop/reset now clears all four controllers.
++ */
++typedef struct { float pwm, last_error; } SpeedState;
++static SpeedState states[4];
++static int16_t speed_step(unsigned wheel, float target, float measured)
+ {
+-	static int16_t motor_pwm_out;
+-	static float bias,bias_last;
+-
+-	//获得偏差值
+-	bias = spd_target - spd_current;
+-	
+-	//PID计算电机输出PWM值
+-	motor_pwm_out += ax_motor_kp*bias + ax_motor_kd*(bias-bias_last);
+-	
+-	//记录上次偏差
+-	bias_last = bias;
+-	
+-	//限制最大输出
+-	if(motor_pwm_out > 4200)
+-		motor_pwm_out = 4200;
+-	if(motor_pwm_out < -4200)
+-		motor_pwm_out = -4200;
+-	
+-	//返回PWM控制值
+-	return motor_pwm_out;
+-}	
+-
+-/**
+-  * @简  述  电机PID控制函数
+-  * @参  数  spd_target:编码器速度目标值 
+-  *          spd_target: 编码器速度当前值
+-  * @返回值  电机PWM速度
+-  */
+-int16_t AX_SPEED_PidCtlB(float spd_target, float spd_current)
++    SpeedState *state=&states[wheel];
++    float error, next;
++    if (!(target>=-FLT_MAX && target<=FLT_MAX &&
++          measured>=-FLT_MAX && measured<=FLT_MAX)) {
++        state->pwm=state->last_error=0.0f; return 0;
++    }
++    error=target-measured;
++    next=state->pwm+ax_motor_kp*error+ax_motor_kd*(error-state->last_error);
++    if (next>4200.0f) next=4200.0f;
++    if (next< -4200.0f) next= -4200.0f;
++    state->pwm=next; state->last_error=error;
++    return (int16_t)next;
++}
++void AX_SPEED_Reset(void)
+ {
+-	static int16_t motor_pwm_out;
+-	static float bias,bias_last;
+-
+-	//获得偏差值
+-	bias = spd_target - spd_current;
+-	
+-	//PID计算电机输出PWM值
+-	motor_pwm_out += ax_motor_kp*bias + ax_motor_kd*(bias-bias_last);
+-	
+-	//记录上次偏差
+-	bias_last = bias;
+-	
+-	//限制最大输出
+-	if(motor_pwm_out > 4200)
+-		motor_pwm_out = 4200;
+-	if(motor_pwm_out < -4200)
+-		motor_pwm_out = -4200;
+-	
+-	//返回PWM控制值
+-	return motor_pwm_out;
++    unsigned i;
++    for (i=0;i<4u;++i) { states[i].pwm=0.0f; states[i].last_error=0.0f; }
+ }
+-
+-/**
+-  * @简  述  电机PID控制函数
+-  * @参  数  spd_target:编码器速度目标值 
+-  *          spd_target: 编码器速度当前值
+-  * @返回值  电机PWM速度
+-  */
+-int16_t AX_SPEED_PidCtlC(float spd_target, float spd_current)
+-{
+-	static int16_t motor_pwm_out;
+-	static float bias,bias_last;
+-
+-	//获得偏差值
+-	bias = spd_target - spd_current;
+-	
+-	//PID计算电机输出PWM值
+-	motor_pwm_out += ax_motor_kp*bias + ax_motor_kd*(bias-bias_last);
+-	
+-	//记录上次偏差
+-	bias_last = bias;
+-	
+-	//限制最大输出
+-	if(motor_pwm_out > 4200)
+-		motor_pwm_out = 4200;
+-	if(motor_pwm_out < -4200)
+-		motor_pwm_out = -4200;
+-	
+-	//返回PWM控制值
+-	return motor_pwm_out;
+-}
+-
+-/**
+-  * @简  述  电机PID控制函数
+-  * @参  数  spd_target:编码器速度目标值 
+-  *          spd_target: 编码器速度当前值
+-  * @返回值  电机PWM速度
+-  */
+-int16_t AX_SPEED_PidCtlD(float spd_target, float spd_current)
+-{
+-	static int16_t motor_pwm_out;
+-	static float bias,bias_last;
+-
+-	//获得偏差值
+-	bias = spd_target - spd_current;
+-	
+-	//PID计算电机输出PWM值
+-	motor_pwm_out += ax_motor_kp*bias + ax_motor_kd*(bias-bias_last);
+-	
+-	//记录上次偏差
+-	bias_last = bias;
+-	
+-	//限制最大输出
+-	if(motor_pwm_out > 4200)
+-		motor_pwm_out = 4200;
+-	if(motor_pwm_out < -4200)
+-		motor_pwm_out = -4200;
+-	
+-	//返回PWM控制值
+-	return motor_pwm_out;
+-}
+-
+-
+-/******************* (C) 版权 2023 XTARK **************************************/
+-
++int16_t AX_SPEED_PidCtlA(float target,float measured) { return speed_step(0u,target,measured); }
++int16_t AX_SPEED_PidCtlB(float target,float measured) { return speed_step(1u,target,measured); }
++int16_t AX_SPEED_PidCtlC(float target,float measured) { return speed_step(2u,target,measured); }
++int16_t AX_SPEED_PidCtlD(float target,float measured) { return speed_step(3u,target,measured); }
+--- a/Robot/ax_speed.h
++++ b/Robot/ax_speed.h
+@@ -37,6 +37,8 @@
+ int16_t AX_SPEED_PidCtlD(float spd_target, float spd_current);    //PID控制函数，电机D
+ 
+ 
++void AX_SPEED_Reset(void);
++
+ #endif
+ 
+ /******************* (C) 版权 2023 XTARK **************************************/
+--- a/Robot/ax_turn.h
++++ b/Robot/ax_turn.h
+@@ -2,6 +2,7 @@
+ #define AX_TURN_H
+ 
+ #include "turn_control.h"
++#include "ax_chassis_config.h"
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -15,7 +16,7 @@
+ #define AX_TURN_MAX_YAW_RADPS 0.60f
+ #endif
+ #ifndef AX_TURN_MAX_WHEEL_MPS
+-#define AX_TURN_MAX_WHEEL_MPS 0.20f
++#define AX_TURN_MAX_WHEEL_MPS AX_FWD_MAX_WHEEL_MPS
+ #endif
+ 
+ typedef enum {
+--- a/Robot/key_gpio_tarkbot.c
++++ b/Robot/key_gpio_tarkbot.c
+@@ -1,7 +1,8 @@
+ #include "main.h"
++#include "ax_board_config.h"
+ #include "key_gpio_tarkbot.h"
+ 
+-#if APP_KEY_TURN_TEST
++#if AX_BOARD_H60_V37
+ #include "stm32f4xx_gpio.h"
+ #include "stm32f4xx_rcc.h"
+ 
+@@ -40,6 +41,8 @@
+ }
+ #else
+ #include "ax_key.h"
++void key_gpio_tarkbot_init(void) { AX_KEY_Init(); }
++uint8_t key_gpio_tarkbot_both_released(void) { return AX_KEY_Scan()==0u; }
+ 
+ uint8_t gpio_get_level(uint8_t pin)
+ {
+--- a/Robot/main.c
++++ b/Robot/main.c
+@@ -27,6 +27,7 @@
+ #include <stdio.h>
+ #include "main.h"
+ #include "ax_robot.h"
++#include "ax_kinematics.h"
+ 
+ #if APP_KEY_TURN_TEST
+ #include "key_gpio_tarkbot.h"
+@@ -36,45 +37,54 @@
+ #include "ax_oled_chinese.h" //OLED汉字库
+ #include "ax_oled_picture.h" //OLED 图片库
+ 
++static void AX_CreateTaskChecked(TaskFunction_t entry, const char *name, uint16_t depth,
++                                 void *arg, UBaseType_t priority, TaskHandle_t *handle)
++{
++    if (xTaskCreate(entry,name,depth,arg,priority,handle)!=pdPASS) {
++        ax_robot_move_enable=0u; ax_motion_fault=4u; AX_ROBOT_Stop();
++        taskDISABLE_INTERRUPTS(); for (;;) { }
++    }
++}
++
+ //任务句柄
+ //启动任务
+ #define START_TASK_PRIO		1
+-#define START_STK_SIZE 		128  
++#define START_STK_SIZE 		256  
+ TaskHandle_t StartTask_Handler = NULL;
+ void Start_Task(void *pvParameters);
+ 
+ //机器人运行主任务
+-#define ROBOT_TASK_PRIO		3     
+-#define ROBOT_STK_SIZE 		256 
++#define ROBOT_TASK_PRIO		4     
++#define ROBOT_STK_SIZE 		512 
+ TaskHandle_t Robot_Task_Handle = NULL;
+ void Robot_Task(void *pvParameters);
+ 
+ //按键处理任务
+-#define KEY_TASK_PRIO		4     
++#define KEY_TASK_PRIO		3     
+ #define KEY_STK_SIZE 		128   
+ TaskHandle_t Key_Task_Handle = NULL;
+ void Key_Task(void *pvParameters);
+ 
+ //RGB灯效任务
+-#define LIGHT_TASK_PRIO		5     
++#define LIGHT_TASK_PRIO		1     
+ #define LIGHT_STK_SIZE 		128   
+ TaskHandle_t Light_Task_Handle = NULL;       
+ void Light_Task(void *pvParameters);
+ 
+ //OLED显示任务
+-#define DISP_TASK_PRIO		6     
++#define DISP_TASK_PRIO		1     
+ #define DISP_STK_SIZE 		128   
+ TaskHandle_t Disp_Task_Handle = NULL;
+ void Disp_Task(void *pvParameters);
+ 
+ //琐事管理任务
+-#define TRIVIA_TASK_PRIO		10     
++#define TRIVIA_TASK_PRIO		2     
+ #define TRIVIA_STK_SIZE 		128   
+ TaskHandle_t Trivia_Task_Handle = NULL;
+ void Trivia_Task(void *pvParameters);
+ 
+ //PS2数据获取任务
+-#define PS2_TASK_PRIO		11     
++#define PS2_TASK_PRIO		2     
+ #define PS2_STK_SIZE 		128   
+ TaskHandle_t Ps2_Task_Handle = NULL;
+ void Ps2_Task(void *pvParameters);
+@@ -115,9 +125,7 @@
+ 	AX_VIN_Init();
+ 	
+ 	//蜂鸣器初始化
+-#if !APP_KEY_TURN_TEST
+ 	AX_BEEP_Init();
+-#endif
+ 	
+ 	//EEPROM初始化
+ 	AX_EEPROM_Init();  
+@@ -132,16 +140,22 @@
+ 	AX_UART3_Init(230400);
+ 	
+ 	//蓝牙串口初始化
++#if !APP_KEY_TURN_TEST
+ 	AX_UART4_Init(115200);
++#endif
+ 	
+ 	//SBUS航模遥控器串口初始化
++#if !APP_KEY_TURN_TEST
+ 	AX_SBUS_Init();
++#endif
+ 	
+ 	//CAN初始化
+ 	AX_CAN_Init();
+ 	
+ 	//PS2手柄初始化
++#if !APP_KEY_TURN_TEST
+ 	AX_PS2_Init();
++#endif
+ 	
+ 	//编码器初始化，
+ 	AX_ENCODER_A_Init();  
+@@ -158,7 +172,9 @@
+ 	AX_OLED_DispPicture(0, 0, 128, 8, PIC64X128_XTARK, 0); 
+ 	
+ 	//拨码开关初始化，暂时不用
+-	AX_SW_Init();
++#if !AX_BOARD_H60_V37
++	AX_SW_Init(); /* PB0/PB1 are LEDs on V3.7. */
++#endif
+ 	
+ 	//开机提示信息
+ 	AX_BEEP_On();
+@@ -173,8 +189,10 @@
+ 	AX_MPU6050_SetGyroSmplRate(200);            //设置陀螺仪采样率
+ 	AX_MPU6050_SetDLPF(AX_DLPF_ACC94_GYRO98);   //设置低通滤波器带宽
+ 	
++    if (!AX_MPU6050_IsReady()) { ax_motion_fault=1u; ax_robot_move_enable=0u; AX_ROBOT_Stop(); }
++
+ 	//创建AppTaskCreate任务
+-	xTaskCreate((TaskFunction_t )Start_Task,  /* 任务入口函数 */
++	AX_CreateTaskChecked((TaskFunction_t )Start_Task,  /* 任务入口函数 */
+ 								 (const char*    )"Start_Task",/* 任务名字 */
+ 								 (uint16_t       )START_STK_SIZE,  /* 任务栈大小 */
+ 								 (void*          )NULL,/* 任务入口函数参数 */
+@@ -201,7 +219,8 @@
+ 	uint8_t temp = 0x55;
+ 	
+ 	//陀螺仪校准变量
+-	int16_t gyro_data[3]; 
++	int16_t gyro_data[3];
++    int32_t gyro_sum[3]={0,0,0}; 
+ 	
+ 	/******机器人启动流程************************************************/
+ 	
+@@ -263,15 +282,15 @@
+ 		//获取PMU6050陀螺仪数据
+         AX_MPU6050_GetGyroData(gyro_data);
+ 		
+-		ax_imu_gyro_offset[0] += gyro_data[0];
+-		ax_imu_gyro_offset[1] += gyro_data[1];
+-		ax_imu_gyro_offset[2] += gyro_data[2]; 		
++		gyro_sum[0] += gyro_data[0];
++		gyro_sum[1] += gyro_data[1];
++		gyro_sum[2] += gyro_data[2]; 		
+ 	}
+ 	
+ 	//计算平均偏差值
+-	ax_imu_gyro_offset[0] = -ax_imu_gyro_offset[0]/10;
+-	ax_imu_gyro_offset[1] = -ax_imu_gyro_offset[1]/10;
+-	ax_imu_gyro_offset[2] = -ax_imu_gyro_offset[2]/10;	
++	ax_imu_gyro_offset[0] = (int16_t)(-(gyro_sum[0]/10) > 32767 ? 32767 : -(gyro_sum[0]/10));
++	ax_imu_gyro_offset[1] = (int16_t)(-(gyro_sum[1]/10) > 32767 ? 32767 : -(gyro_sum[1]/10));
++	ax_imu_gyro_offset[2] = (int16_t)(-(gyro_sum[2]/10) > 32767 ? 32767 : -(gyro_sum[2]/10));	
+ 	
+ 
+ 	//开机等待，展示等待灯效（树莓派等待35S，其它等待3S）
+@@ -331,11 +350,14 @@
+ 	AX_OLED_DispStr(78, 0, "OMT", 0);	
+ 	#endif
+ 	
++    if (!AX_MPU6050_IsReady()) { ax_motion_fault=1u; ax_robot_move_enable=0u; }
++    AX_ROBOT_Stop();
++
+ 	//进入临界区
+ 	taskENTER_CRITICAL();   
+ 
+ 	//创建机器人控制任务
+-	xTaskCreate((TaskFunction_t )Robot_Task, /* 任务入口函数 */
++	AX_CreateTaskChecked((TaskFunction_t )Robot_Task, /* 任务入口函数 */
+ 			 (const char*    )"Robot_Task",/* 任务名字 */
+ 			 (uint16_t       )ROBOT_STK_SIZE,   /* 任务栈大小 */
+ 			 (void*          )NULL,	/* 任务入口函数参数 */
+@@ -344,10 +366,10 @@
+ 			 	 								 
+ 	//创建按键处理任务
+ #if APP_KEY_TURN_TEST
+-	xTaskCreate(Key_Turn_Scan_Task, "Key_Turn", KEY_STK_SIZE, NULL,
++	AX_CreateTaskChecked(Key_Turn_Scan_Task, "Key_Turn", KEY_STK_SIZE, NULL,
+ 	            KEY_TASK_PRIO, &Key_Task_Handle);
+ #else
+-	xTaskCreate((TaskFunction_t )Key_Task, /* 任务入口函数 */
++	AX_CreateTaskChecked((TaskFunction_t )Key_Task, /* 任务入口函数 */
+ 			 (const char*    )"Key_Task",/* 任务名字 */
+ 			 (uint16_t       )KEY_STK_SIZE,   /* 任务栈大小 */
+ 			 (void*          )NULL,	/* 任务入口函数参数 */
+@@ -356,7 +378,7 @@
+ #endif
+ 			 
+ 	//RGB灯效任务
+-	xTaskCreate((TaskFunction_t )Light_Task, /* 任务入口函数 */
++	AX_CreateTaskChecked((TaskFunction_t )Light_Task, /* 任务入口函数 */
+ 			 (const char*    )"Light_Task",/* 任务名字 */
+ 			 (uint16_t       )LIGHT_STK_SIZE,   /* 任务栈大小 */
+ 			 (void*          )NULL,	/* 任务入口函数参数 */
+@@ -364,7 +386,7 @@
+ 			 (TaskHandle_t*  )&Light_Task_Handle);/* 任务控制块指针 */			
+ 
+ 	//OLED屏显示任务
+-	xTaskCreate((TaskFunction_t )Disp_Task, /* 任务入口函数 */
++	AX_CreateTaskChecked((TaskFunction_t )Disp_Task, /* 任务入口函数 */
+ 			 (const char*    )"Disp_Task",/* 任务名字 */
+ 			 (uint16_t       )DISP_STK_SIZE,   /* 任务栈大小 */
+ 			 (void*          )NULL,	/* 任务入口函数参数 */
+@@ -372,7 +394,7 @@
+ 			 (TaskHandle_t*  )&Disp_Task_Handle);/* 任务控制块指针 */	
+ 			 
+ 	//琐事管理任务
+-	xTaskCreate((TaskFunction_t )Trivia_Task, /* 任务入口函数 */
++	AX_CreateTaskChecked((TaskFunction_t )Trivia_Task, /* 任务入口函数 */
+ 			 (const char*    )"Trivia_Task",/* 任务名字 */
+ 			 (uint16_t       )TRIVIA_STK_SIZE,   /* 任务栈大小 */
+ 			 (void*          )NULL,	/* 任务入口函数参数 */
+@@ -380,12 +402,14 @@
+ 			 (TaskHandle_t*  )&Trivia_Task_Handle);/* 任务控制块指针 */	
+ 
+ 	//PS2手柄数据读取任务
+-	xTaskCreate((TaskFunction_t )Ps2_Task, /* 任务入口函数 */
++#if !APP_KEY_TURN_TEST
++	AX_CreateTaskChecked((TaskFunction_t )Ps2_Task, /* 任务入口函数 */
+ 			 (const char*    )"Ps2_Task",/* 任务名字 */
+ 			 (uint16_t       )PS2_STK_SIZE,   /* 任务栈大小 */
+ 			 (void*          )NULL,	/* 任务入口函数参数 */
+ 			 (UBaseType_t    )PS2_TASK_PRIO,	    /* 任务的优先级 */
+-			 (TaskHandle_t*  )&Ps2_Task_Handle);/* 任务控制块指针 */				 
++			 (TaskHandle_t*  )&Ps2_Task_Handle);
++#endif/* 任务控制块指针 */				 
+ 						  
+ 	//删除AppTaskCreate任务				
+ 	vTaskDelete(StartTask_Handler); 
+--- a/Robot/stm32f4xx_it.c
++++ b/Robot/stm32f4xx_it.c
+@@ -120,6 +120,7 @@
+ //  * @param  None
+ //  * @retval None
+ //  */
++extern void xPortSysTickHandler(void);
+ void SysTick_Handler(void)
+ {
+ 	if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+--- a/Robot/按键接入说明.md
++++ b/Robot/按键接入说明.md
+@@ -1,3 +1,5 @@
++> 本文为上传工程的历史接入记录。当前修正版的参数、控制权、停止行为及验证结果，以根目录《修改说明与使用方法.md》为准。
++
+ # OpenCTR H60 V3.7 板载按键转向台架测试
+ 
+ - 硬件映射来自 OpenCTR_H60_Schematic_V3.7.0.pdf。左边 KA 接 PE1，中间 KB 接 PE4，均为低电平有效。右边 Reset 接 NRST，负责硬件复位。
+@@ -6,3 +8,4 @@
+ - 使用已在该实车上验证的 V3.7 底层工程，架空车轮，断开串口、CAN 和遥控等速度命令来源。测试模式接管 Robot_Task 的控制分支，底层通信驱动仍能写入共享目标。
+ - 开机后先松开两个键。短按 KA 松手左转，短按 KB 松手右转。长按不触发转向。每次目标为 0.08 m/s、35% 转向强度，约 400 ms 后清空目标并停止 PWM。
+ - 测试要求当前为 CTL_ROS、运动使能，底盘型号为 MEC 或 FWD。当前工程选的是 MEC。
++
+--- a/Robot/转向接入说明.md
++++ b/Robot/转向接入说明.md
+@@ -1,3 +1,5 @@
++> 本文为上传工程的历史接入记录。当前修正版的参数、控制权、停止行为及验证结果，以根目录《修改说明与使用方法.md》为准。
++
+ # 转向函数接入说明
+ 
+ 2026-11-10：新增4个文件，原有19个.c/.h文件保持原字节，未修改启动流程、控制任务、PID、电机符号、底盘型号或参数；不会在上电时主动执行转向。
+@@ -60,3 +62,4 @@
+ ## GitHub项目内的离线测试
+ 
+ 在安装MSVC C工具和Python的Windows上，从本仓库根目录运行 `python Robot/tests/run_tests.py`，可直接编译本目录实际 `turn_control.c` 并执行57,354项通用算法断言；不需要外部“转向函数”目录。测试输出放在已忽略的 `Robot/.build/`。`Robot/tests/robot_integration_results.json` 保存了此前MEC/FWD真实适配调用链及完整构建对照记录，其本机日志路径为历史来源，不要求在其他电脑存在。完整集成回放工具仍位于智能车工作区的“转向函数/tests”目录，不能将通用算法测试等同完整固件或实车验收。
++
+--- a/tests/host_platform.h
++++ b/tests/host_platform.h
+@@ -0,0 +1,49 @@
++#ifndef HOST_PLATFORM_H
++#define HOST_PLATFORM_H
++#include <stdint.h>
++#include <stddef.h>
++typedef uint32_t TickType_t;
++typedef uint32_t portTickType;
++typedef void *TaskHandle_t;
++typedef struct { unsigned unused; } JOYSTICK_TypeDef;
++#define configTICK_RATE_HZ 1000u
++#define pdMS_TO_TICKS(ms) ((TickType_t)(ms))
++#define taskENTER_CRITICAL() ((void)0)
++#define taskEXIT_CRITICAL() ((void)0)
++TickType_t xTaskGetTickCount(void);
++void vTaskDelayUntil(TickType_t *previous, TickType_t increment);
++void ROBOT_IMUHandle(void);
++void ROBOT_SendDataToRos(void);
++int32_t AX_ENCODER_A_GetCounter(void);
++int32_t AX_ENCODER_B_GetCounter(void);
++int32_t AX_ENCODER_C_GetCounter(void);
++int32_t AX_ENCODER_D_GetCounter(void);
++void AX_ENCODER_A_SetCounter(uint16_t v);
++void AX_ENCODER_B_SetCounter(uint16_t v);
++void AX_ENCODER_C_SetCounter(uint16_t v);
++void AX_ENCODER_D_SetCounter(uint16_t v);
++void AX_MOTOR_A_SetSpeed(int16_t v);
++void AX_MOTOR_B_SetSpeed(int16_t v);
++void AX_MOTOR_C_SetSpeed(int16_t v);
++void AX_MOTOR_D_SetSpeed(int16_t v);
++typedef struct { volatile uint32_t CNT,SR,ARR; } TIM_TypeDef;
++extern TIM_TypeDef host_timers[4];
++#define TIM2 (&host_timers[0])
++#define TIM3 (&host_timers[1])
++#define TIM5 (&host_timers[2])
++#define TIM4 (&host_timers[3])
++#define TIM_IT_Update 1u
++#define RESET 0u
++#define ENABLE 1u
++#define TIM3_IRQn 3u
++#define TIM4_IRQn 4u
++typedef struct { unsigned NVIC_IRQChannel,NVIC_IRQChannelPreemptionPriority,
++    NVIC_IRQChannelSubPriority,NVIC_IRQChannelCmd; } NVIC_InitTypeDef;
++unsigned TIM_GetITStatus(TIM_TypeDef *timer,unsigned interrupt);
++void TIM_ClearITPendingBit(TIM_TypeDef *timer,unsigned interrupt);
++void TIM_SetAutoreload(TIM_TypeDef *timer,uint32_t value);
++void TIM_ITConfig(TIM_TypeDef *timer,unsigned interrupt,unsigned enabled);
++void NVIC_Init(NVIC_InitTypeDef *irq);
++void TIM3_IRQHandler(void);
++void TIM4_IRQHandler(void);
++#endif
+--- a/tests/run_host_tests.py
++++ b/tests/run_host_tests.py
+@@ -0,0 +1,40 @@
++"""Build real production units with only the hardware/RTOS interfaces replaced."""
++from pathlib import Path
++import json, os, re, subprocess
++
++ROOT=Path(__file__).resolve().parents[1]
++OUT=ROOT/'tests'/'.build'
++OUT.mkdir(exist_ok=True)
++STUBS=OUT/'include'
++STUBS.mkdir(exist_ok=True)
++header=(ROOT/'Robot/ax_robot.h').read_text(encoding='utf-8')
++for name in re.findall(r'#include "([^"]+)"',header):
++    if (ROOT/'Robot'/name).exists():continue
++    (STUBS/name).write_text('/* Host hardware interface; data structures remain in real ax_robot.h. */\n',encoding='utf-8')
++(STUBS/'ax_mpu6050.h').write_text('#include "../../../Driver/ax_mpu6050.h"\n',encoding='utf-8')
++source=(ROOT/'Robot/ax_robot.c').read_text(encoding='utf-8')
++def function(signature):
++    start=source.index(signature);end=source.index('{',start)+1;depth=1
++    while depth:
++        if source[end]=='{':depth+=1
++        if source[end]=='}':depth-=1
++        end+=1
++    return source[start:end]
++prefix=source[source.index('#define KEY_TURN_SPEED_MPS'):source.index('void Key_Turn_Scan_Task(')]
++(STUBS/'production_steps.inc').write_text(prefix+'\n'+function('static void Key_Turn_Test_Step(void)')+'\n'+function('void Robot_Task(void* parameter)'),encoding='utf-8')
++vswhere=Path(os.environ.get('ProgramFiles(x86)','C:/Program Files (x86)'))/'Microsoft Visual Studio/Installer/vswhere.exe'
++install=subprocess.check_output([str(vswhere),'-latest','-products','*','-requires','Microsoft.VisualStudio.Component.VC.Tools.x86.x64','-property','installationPath'],text=True).strip()
++vcvars=Path(install)/'VC/Auxiliary/Build/vcvars64.bat'
++units=['Robot/turn_control.c','Robot/ax_turn.c','Robot/ax_kinematics.c','Robot/ax_speed.c','Driver/ax_mpu6050.c','Driver/ax_encoder_extended.c','tests/test_competition.c']
++command='cl /nologo /utf-8 /W4 /WX /wd4244 /wd4100 /std:c11 /Od /RTC1 /fp:strict /DAPP_KEY_TURN_TEST=1 '
++command+=' /FIhost_platform.h '
++command+=' '.join('/I"'+os.path.relpath(p,OUT)+'"' for p in [STUBS,ROOT/'tests',ROOT/'Robot',ROOT/'Driver'])+' '
++command+=' '.join('"'+os.path.relpath(ROOT/u,OUT)+'"' for u in units)+' /Fe:test_competition.exe\n'
++batch=OUT/'compile.cmd'
++batch.write_text('@echo off\ncall "'+str(vcvars)+'" >nul\nif errorlevel 1 exit /b 1\n'+command+'exit /b %errorlevel%\n',encoding='mbcs')
++subprocess.run(['cmd.exe','/d','/c',str(batch)],cwd=OUT,check=True)
++result=subprocess.run([str(OUT/'test_competition.exe')],cwd=OUT,capture_output=True,text=True)
++print(result.stdout,end='')
++if result.stderr: print(result.stderr,end='')
++result.check_returncode()
++(OUT/'results.txt').write_text(result.stdout,encoding='utf-8')
+--- a/tests/test_competition.c
++++ b/tests/test_competition.c
+@@ -0,0 +1,192 @@
++#include "host_platform.h"
++#include "ax_robot.h"
++#include "ax_speed.h"
++#include "ax_turn.h"
++#include "ax_kinematics.h"
++#include "ax_mpu6050.h"
++#include "ax_encoder_extended.h"
++#include <assert.h>
++#include <math.h>
++#include <setjmp.h>
++#include <stdio.h>
++#include <string.h>
++
++ROBOT_Velocity R_Vel;
++ROBOT_Wheel R_Wheel_A,R_Wheel_B,R_Wheel_C,R_Wheel_D;
++int16_t ax_motor_kp=800,ax_motor_kd=1000;
++uint8_t ax_robot_move_enable=1u,ax_control_mode=CTL_ROS;
++volatile uint8_t ax_motion_fault;
++float ax_control_dt_s=0.02f;
++TIM_TypeDef host_timers[4];
++static int16_t pwm[4];
++static TickType_t ticks;
++static unsigned checks;
++#define CHECK(x) do { ++checks; if(!(x)) { fprintf(stderr,"FAIL %d: %s\n",__LINE__,#x); return 1; } } while(0)
++#define IO(w,i) int32_t AX_ENCODER_##w##_GetCounter(void){return AX_ENCODER_ReadExtended(i);} \
++void AX_ENCODER_##w##_SetCounter(uint16_t v){AX_ENCODER_SetExtended(i,v);} \
++void AX_MOTOR_##w##_SetSpeed(int16_t v){pwm[i]=v;}
++IO(A,0) IO(B,1) IO(C,2) IO(D,3)
++unsigned TIM_GetITStatus(TIM_TypeDef *timer,unsigned interrupt){return timer->SR & interrupt;}
++void TIM_ClearITPendingBit(TIM_TypeDef *timer,unsigned interrupt){timer->SR &= ~interrupt;}
++void TIM_SetAutoreload(TIM_TypeDef *timer,uint32_t value){timer->ARR=value;}
++void TIM_ITConfig(TIM_TypeDef *timer,unsigned interrupt,unsigned enabled){(void)timer;(void)interrupt;(void)enabled;}
++void NVIC_Init(NVIC_InitTypeDef *irq){(void)irq;}
++static void feed(int32_t a,int32_t b,int32_t c,int32_t d)
++{
++    int32_t values[4];unsigned i;
++    values[0]=a;values[1]=b;values[2]=c;values[3]=d;
++    for(i=0u;i<4u;++i) {
++        AX_ENCODER_SetExtended(i,0u);
++        host_timers[i].CNT=(i==1u || i==3u) ? (uint16_t)values[i] : (uint32_t)values[i];
++        if((i==1u || i==3u) && values[i]<0) host_timers[i].SR=TIM_IT_Update;
++    }
++}
++TickType_t xTaskGetTickCount(void){return ticks;}
++static jmp_buf finish_task;
++static unsigned cycle;
++static uint32_t gaps[2];
++void vTaskDelayUntil(TickType_t *previous,TickType_t increment)
++{
++    (void)increment;
++    if(cycle>=2u) longjmp(finish_task,1);
++    ticks+=gaps[cycle++]; *previous=ticks;
++}
++void ROBOT_SendDataToRos(void){}
++void ROBOT_IMUHandle(void)
++{
++    int16_t data[3]; AX_MPU6050_GetAccData(data); AX_MPU6050_GetGyroData(data);
++}
++
++/* Sensor bus model: register transactions only; no hardware access. */
++static uint8_t regs[256],sensor_address,sensor_id_reg,fail_bus;
++void AX_IMU_BusInit(void){}
++void AX_IMU_DelayUs(uint32_t us){(void)us;}
++uint8_t AX_IMU_BusRead(uint8_t address,uint8_t reg,uint8_t *data,uint8_t size)
++{
++    if(fail_bus || address!=sensor_address || !data) return 0u;
++    memcpy(data,&regs[reg],size); return 1u;
++}
++uint8_t AX_IMU_BusWrite(uint8_t address,uint8_t reg,uint8_t value)
++{
++    if(fail_bus || address!=sensor_address) return 0u;
++    if(reg!=sensor_id_reg) regs[reg]=value;
++    return 1u;
++}
++static void sensor(uint8_t address,uint8_t reg,uint8_t id)
++{
++    memset(regs,0,sizeof(regs));fail_bus=0u;
++    sensor_address=address;sensor_id_reg=reg;regs[reg]=id;
++}
++/* Extracted verbatim from the current production ax_robot.c by run_host_tests.py. */
++#include "production_steps.inc"
++
++static int test_sensors(void)
++{
++    int16_t data[3];
++    sensor(0x6au,0u,5u);AX_MPU6050_Init();
++    CHECK(AX_MPU6050_IsReady() && AX_MPU6050_GetKind()==AX_IMU_QMI8658);
++    CHECK(regs[3]==0x85u && regs[4]==0xd5u && regs[8]==3u);
++    regs[53]=0u;regs[54]=0x40u;
++    AX_MPU6050_GetAccData(data);CHECK(data[0]==16384 && data[1]==0);
++    regs[59]=0xd4u;regs[60]=0x30u; /* 12500 native counts */
++    AX_MPU6050_GetGyroData(data);CHECK(data[0]==12800);
++    regs[59]=0xffu;regs[60]=0x7fu;
++    regs[61]=0u;regs[62]=0x80u;
++    AX_MPU6050_GetGyroData(data);CHECK(data[0]==32767 && data[1]==-32768);
++    AX_MPU6050_SetGyroSmplRate(200u);CHECK((regs[4]&15u)==5u);
++    fail_bus=1u;data[0]=123;
++    AX_MPU6050_GetAccData(data);CHECK(!AX_MPU6050_IsReady() && data[0]==0);
++    fail_bus=0u;AX_MPU6050_GetAccData(data);CHECK(!AX_MPU6050_IsReady());
++    sensor(0x6bu,0u,5u);AX_MPU6050_Init();CHECK(AX_MPU6050_IsReady());
++    sensor(0x68u,0x75u,0x68u);AX_MPU6050_Init();
++    CHECK(AX_MPU6050_IsReady() && AX_MPU6050_GetKind()==AX_IMU_MPU6050);
++    CHECK(regs[0x1b]==8u && regs[0x1c]==0u);
++    regs[0x3b]=0x40u;regs[0x3c]=0u;
++    AX_MPU6050_GetAccData(data);CHECK(data[0]==16384);
++    regs[0x43]=0xffu;regs[0x44]=0x9cu;
++    AX_MPU6050_GetGyroData(data);CHECK(data[0]==-100);
++    sensor(0x69u,0x75u,0x68u);AX_MPU6050_Init();CHECK(AX_MPU6050_IsReady());
++    sensor(0x6au,0u,6u);AX_MPU6050_Init();CHECK(!AX_MPU6050_IsReady());
++    return 0;
++}
++static int test_drive(void)
++{
++    int v,s,i;
++    const int n=(int)(0.08/FWD_WHEEL_SCALE+0.5);
++    CHECK(ROBOT_TYPE==ROBOT_FWD);
++    CHECK(FWD_WHEEL_DIAMETER==0.065 && FWD_WHEEL_RESOLUTION==122880.0);
++    AX_ROBOT_Stop();
++    CHECK(AX_TURN_Left(0.08f,35.0f)==AX_TURN_OK);
++    AX_ROBOT_Kinematics();
++    CHECK(R_Wheel_B.TG>R_Wheel_A.TG && R_Wheel_D.TG>R_Wheel_C.TG);
++    CHECK(pwm[0]<0 && pwm[1]<0 && pwm[2]>0 && pwm[3]>0);
++    AX_ROBOT_Stop();
++    CHECK(AX_SPEED_PidCtlA(0.0f,0.0f)==0);
++    feed(n,-n,n,-n);
++    R_Vel.TG_IX=80;AX_ROBOT_Kinematics();
++    CHECK(fabs(R_Vel.RT_IX-80)<=1 && R_Vel.RT_IW==0);
++    for(i=0;i<4;i++) CHECK(host_timers[i].CNT==0);
++    ax_control_dt_s=0.04f;
++    feed(2*n,-2*n,2*n,-2*n);
++    AX_ROBOT_Kinematics();CHECK(fabs(R_Vel.RT_IX-80)<=1);
++    ax_control_dt_s=0.02f;
++    AX_ROBOT_Stop();
++    for(v=0;v<=120;v+=2) for(s=0;s<=100;s+=2) {
++        (void)AX_TURN_Left(v/1000.0f,(float)s);AX_ROBOT_Kinematics();
++        CHECK(R_Wheel_A.TG>=-0.000001f && R_Wheel_B.TG<=0.120001f);
++        (void)AX_TURN_Right(v/1000.0f,(float)s);AX_ROBOT_Kinematics();
++        CHECK(R_Wheel_B.TG>=-0.000001f && R_Wheel_A.TG<=0.120001f);
++    }
++    R_Vel.TG_IX=120;R_Vel.TG_IW=600;AX_ROBOT_Kinematics();
++    CHECK(fabs(R_Wheel_B.TG)<=0.120001 && fabs(R_Wheel_A.TG)<=0.120001);
++    AX_ROBOT_Stop();
++    ax_robot_move_enable=0u;CHECK(AX_TURN_Left(0.08f,35.0f)==AX_TURN_DISABLED);
++    ax_robot_move_enable=1u;ax_control_mode=CTL_PS2;
++    CHECK(AX_TURN_Left(0.08f,35.0f)==AX_TURN_BUSY);ax_control_mode=CTL_ROS;
++    feed(120000,0,0,0); R_Vel.TG_IX=80;AX_ROBOT_Kinematics();
++    CHECK(ax_motion_fault==3u && ax_robot_move_enable==0u);
++    for(i=0;i<4;i++) CHECK(pwm[i]==0);
++    ax_motion_fault=0u;ax_robot_move_enable=1u;
++    return 0;
++}
++static int test_task(void)
++{
++    int i;
++    ticks=1000u;key_turn_request=KEY_TURN_LEFT;Key_Turn_Test_Step();
++    /* The adapter deliberately truncates float m/s to integer mm/s. */
++    CHECK(R_Vel.TG_IX==79 && R_Vel.TG_IW==210);
++    ticks+=20u;R_Vel.TG_IX=120;R_Vel.TG_IY=1000;R_Vel.TG_IW=-600;
++    Key_Turn_Test_Step();CHECK(R_Vel.TG_IX==79 && R_Vel.TG_IY==0 && R_Vel.TG_IW==210);
++    ticks=1400u;Key_Turn_Test_Step();
++    for(i=0;i<4;i++) CHECK(pwm[i]==0);
++    CHECK(AX_SPEED_PidCtlA(0,0)==0);
++    ticks+=20u;Key_Turn_Test_Step();CHECK(R_Vel.TG_IX==0);
++    sensor(0x6au,0u,5u);AX_MPU6050_Init();
++    gaps[0]=20u;gaps[1]=60u;cycle=0u;
++    key_turn_request=KEY_TURN_RIGHT;
++    if(setjmp(finish_task)==0) Robot_Task(NULL);
++    CHECK(ax_motion_fault==2u && ax_robot_move_enable==0u);
++    for(i=0;i<4;i++) CHECK(pwm[i]==0);
++    return 0;
++}
++int main(void)
++{
++    unsigned i;
++    for(i=0u;i<4u;++i) AX_ENCODER_ExtendedInit(i);
++    CHECK(TIM2->ARR==0xffffffffu && TIM5->ARR==0xffffffffu);
++    TIM3->CNT=3u;TIM3->SR=TIM_IT_Update;
++    CHECK(AX_ENCODER_ReadExtended(1u)==65539);
++    TIM3_IRQHandler();CHECK(AX_ENCODER_ReadExtended(1u)==65539);
++    AX_ENCODER_SetExtended(1u,0u);
++    TIM3->CNT=65535u;TIM3->SR=TIM_IT_Update;
++    CHECK(AX_ENCODER_ReadExtended(1u)==-1);
++    TIM3_IRQHandler();CHECK(AX_ENCODER_ReadExtended(1u)==-1);
++    TIM3->CNT=65535u;TIM3->SR=TIM_IT_Update;TIM3_IRQHandler();
++    TIM3->CNT=31072u;CHECK(AX_ENCODER_ReadExtended(1u)==-100000);
++    TIM4->CNT=0u;TIM4->SR=TIM_IT_Update;TIM4_IRQHandler();
++    TIM4->CNT=34464u;CHECK(AX_ENCODER_ReadExtended(3u)==100000);
++    AX_ROBOT_Stop();
++    if(test_sensors() || test_drive() || test_task()) return 1;
++    printf("PASS: %u checks, real FWD/turn/PID/IMU code and extracted production task; no hardware\n",checks);
++    return 0;
++}
+--- a/tools/build-arm.ps1
++++ b/tools/build-arm.ps1
+@@ -0,0 +1,65 @@
++param([switch]$LinkOnly)
++$ErrorActionPreference = 'Stop'
++$PSNativeCommandUseErrorActionPreference = $false
++$root = Split-Path $PSScriptRoot
++$projectDir = Join-Path $root 'Project'
++$output = Join-Path $projectDir 'Build'
++New-Item -ItemType Directory -Path $output -Force | Out-Null
++[xml]$project = Get-Content -LiteralPath (Join-Path $projectDir 'keytest.uvprojx')
++$target = $project.Project.Targets.Target
++$controls = $target.TargetOption.TargetArmAds.Cads.VariousControls
++$bin = 'C:\Keil_v5\ARM\ARMCC\bin'
++$log = Join-Path $output 'compile.log'
++if (-not $LinkOnly) { 'Competition firmware ARM Compiler 5.06 build; no hardware access.' | Set-Content $log }
++$includes = @($controls.IncludePath.Split(';') | ForEach-Object { '-I' + [IO.Path]::GetFullPath((Join-Path $projectDir $_)) })
++$defines = @($controls.Define.Split(',') | ForEach-Object { '-D' + $_ })
++$objects = @()
++$failures = 0
++foreach ($file in $target.Groups.Group.Files.File) {
++    $source = [IO.Path]::GetFullPath((Join-Path $projectDir $file.FilePath))
++    $ext = [IO.Path]::GetExtension($source)
++    if ($ext -notin @('.c','.s')) { continue }
++    $obj = Join-Path $output ([IO.Path]::GetFileNameWithoutExtension($source)+'.o')
++    $objects += $obj
++    if ($LinkOnly) { if(-not(Test-Path $obj)) { throw ('Missing object: '+$obj) }; continue }
++    if ($ext -eq '.c') {
++        $arguments = @('--c99','--cpu=Cortex-M4','--fpu=FPv4-SP','--apcs=interwork','--split_sections','-O0','-g','-D__MICROLIB') + $defines + $includes + @('-c',$source,'-o',$obj)
++        $messages = & (Join-Path $bin 'armcc.exe') @arguments 2>&1
++    } else {
++        $arguments = @('--cpu=Cortex-M4','--fpu=FPv4-SP','-g','--pd','__MICROLIB SETA 1','-o',$obj,$source)
++        $messages = & (Join-Path $bin 'armasm.exe') @arguments 2>&1
++    }
++    $rc = $LASTEXITCODE
++    ('SOURCE: ' + $source) | Add-Content $log
++    $messages | Add-Content $log
++    if ($rc -ne 0) { $failures++; Write-Output ('FAIL: ' + $file.FileName); $messages | Write-Output }
++}
++Write-Output ('Compiled units: '+$objects.Count+'; failed units: '+$failures)
++if ($failures -ne 0) { exit 1 }
++$scatter = Join-Path $output 'competition.sct'
++@'
++LR_IROM1 0x08000000 0x00080000 {
++  ER_IROM1 0x08000000 0x00080000 {
++    *.o (RESET, +First)
++    *(InRoot$$Sections)
++    .ANY (+RO)
++  }
++  RW_IRAM1 0x20000000 0x00020000 {
++    .ANY (+RW +ZI)
++  }
++}
++'@ | Set-Content $scatter -Encoding ascii
++$response = Join-Path $output 'objects.rsp'
++$objects | ForEach-Object { '"'+[IO.Path]::GetFileName($_)+'"' } | Set-Content $response -Encoding ascii
++$image = Join-Path $output 'competition.axf'
++Push-Location $output
++$messages = & (Join-Path $bin 'armlink.exe') --cpu=Cortex-M4 --library_type=microlib --strict --entry=Reset_Handler --scatter competition.sct --map --symbols --info=sizes,totals,unused,veneers --list competition.map --via objects.rsp -o competition.axf 2>&1
++$rc = $LASTEXITCODE
++Pop-Location
++$messages | Tee-Object -FilePath (Join-Path $output 'link.log')
++if ($rc -ne 0) { exit $rc }
++& (Join-Path $bin 'fromelf.exe') --i32combined --output (Join-Path $output 'competition.hex') $image
++if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
++Select-String -LiteralPath $log -Pattern 'warning:|error:' | ForEach-Object { $_.Line }
++Write-Output ('ARM image generated: ' + $image)
++
+--- a/修改说明与使用方法.md
++++ b/修改说明与使用方法.md
+@@ -0,0 +1,153 @@
++# 比赛小车修正版修改说明与使用方法
++
++本版以新加入的竞赛培训手册中的实车配置为主，沿用上传工程的按键测试用途。已经生成 ARM HEX 并完成离线测试，尚未烧录、发送运动指令或验证实车轨迹。原上传工程保持不变。
++
++## 实车配置与源码差异
++
++| 项目 | 上传工程 | 修正版 | 依据 |
++| --- | --- | --- | --- |
++| 底盘模型 | ROBOT_MEC 麦轮 | ROBOT_FWD 四轮差速 | 培训手册适用平台、8.2、9.1 |
++| 电机 | FWD 分支按 P60 电机写符号 | P30，符号独立配置 | 实拍铭牌 MC520P30-12V、培训手册 9.2 |
++| 轮径 | MEC 98mm / FWD 100mm | 65mm，即 0.065m | 培训手册实车清单及 8.3 的换轮说明 |
++| 编码器 | MEC 1560 / FWD 3120 计数每轮 | 122880 计数每轮，1024×30×4 | 培训手册 1.3、8.3、验收表；R20 手册第 16 页支持编码器类型差异 |
++| 编码器读数 | 四路均返回 uint16，FWD 再转 int16 | 四路 int32，TIM3/TIM4 扩展溢出 | 磁编码分辨率高，旧接口可回绕并误判速度方向 |
++| 反馈正负号 A/B/C/D | FWD 为 −、＋、−、＋ | ＋、−、＋、− | 培训手册 9.2 的 P30 代码 |
++| PWM 正负号 A/B/C/D | FWD 为 ＋、＋、−、− | −、−、＋、＋ | 同上；与反馈符号分开配置 |
++| IMU | 固定 MPU6050 | 芯片 ID 检测 MPU6050 或 QMI8658 | 旧培训资料与 V3.7 厂家例程存在版本差异 |
++| V3.7 LED | PD3/PD4 | PB0/PB1 | 厂家 V3.7 基础例程 |
++| V3.7 蜂鸣器 | 宏写 PE1，测试模式未初始化 | PE0 正常初始化，避免碰到 KA | 厂家 V3.7 基础例程 |
++| V3.7 按键 | 测试模式 PE1/PE4 | 保留 PE1/PE4 | 对应 KA/KB |
++
++通道保持为 A=左前、B=右前、C=左后、D=右后，主控 MA/MB/MC/MD 分别连接对应电机。
++
++手册内部有几处不能机械照抄：
++
++- 实车清单写 65mm，而后面的参数表仍保留 100mm，同时明确提示换成 65mm 时改为 0.065。本版采用实车清单的 65mm。
++- “左快右慢左转”的文字与其逆解相反。按它的公式及 A/C 在左、B/D 在右的定义，正角速度左转应为左侧较慢、右侧较快。本版保留公式和统一符号，不照抄错误文字。
++- 培训资料的 MPU6050 说明来自旧平台，不能仅凭名称断言当前芯片。新驱动读取芯片 ID 后选择对应寄存器、字节序和量程；QMI 的原生 512dps 数据归一化成原协议的 500dps 单位。
++- 轮距 0.200m、滑移系数 1.75 保留为培训资料的起始值，尚未实测或做地面标定。不能把这两个数称为已标定的实车参数。
++
++## 修改位置
++
++### 机械参数与方向
++
++`Robot/ax_chassis_config.h` 是比赛底盘参数入口：
++
++```c
++#define AX_COMP_WHEEL_DIAMETER_M 0.065
++#define AX_COMP_ENCODER_COUNTS  122880.0
++#define AX_COMP_TRACK_M         0.200
++#define AX_COMP_TRACK_FACTOR    1.75
++```
++
++同一文件中的 `AX_FWD_ENCODER_SIGN_A/B/C/D` 和 `AX_FWD_MOTOR_SIGN_A/B/C/D` 分别控制反馈与驱动符号。不要靠改轮距、PID 或速度比例补偿接线/方向错误。
++
++`Robot/ax_robot.h` 将 `ROBOT_TYPE` 改为 `ROBOT_FWD`，FWD 的四个几何/分辨率宏引用上述配置。`Robot/ax_kinematics.c` 的 FWD 分支使用 P30 符号，按实际控制周期换算速度，并对四轮目标一起缩放以维持转弯比例。
++
++### 编码器计数
++
++`Driver/ax_encoder.h/.c` 的 GetCounter 返回类型改为 int32_t，原初始化引脚和电机接口不变。
++
++新增 `Driver/ax_encoder_extended.h/.c`：
++
++- A/TIM2、C/TIM5：32 位计数范围，直接读取有符号 32 位值。
++- B/TIM3、D/TIM4：16 位定时器通过更新中断累计正/负回绕。
++- 在临界区读取高位、低位和待处理中断标志；处理中断尚未来得及执行时的回绕，不重复计数。
++- GetCounter 接口和 FWD 调用链不再截成 int16。
++- `TIM3_IRQHandler`、`TIM4_IRQHandler` 已加入固件映像。
++
++### 控制板与 IMU
++
++`Robot/ax_board_config.h` 的 `AX_BOARD_H60_V37=1` 是当前板级配置，使用 V3.7 的按键、LED 和蜂鸣器映射；确认使用旧 V3.2 板时可改为 0。本版没有根据培训手册中通用的 H60 名称强行认定硬件版本。
++
++`Driver/ax_led.*`、`ax_beep.*` 和 `Robot/key_gpio_tarkbot.c` 读取该配置。V3.7 下跳过旧 `AX_SW_Init`，避免将 PB0/PB1 的 LED 引脚重新配置为输入。
++
++`Driver/ax_mpu6050.*` 保留现有主程序调用方式，内部检测：
++
++- QMI8658：地址 0x6A/0x6B，WHOAMI=0x05。
++- MPU6050：地址 0x68/0x69，WHOAMI=0x68。
++- 未找到支持的芯片或通信失败：状态变为未就绪，并禁止运动；不自动恢复起步。
++
++新增 `Driver/ax_imu_bus.*` 提供 PB6/PB7 开漏 I2C，逐字节检查 ACK，并限制等待时间。未初始化的接收缓冲不会进入校准计算。开机/重新校准采用 32 位累计，避免 int16 累加溢出。
++
++### 停车、控制权和任务
++
++- `Robot/ax_speed.c/.h` 增加四轮统一的 `AX_SPEED_Reset`，保留原增量控制器的增益，改为浮点累计后限幅、再转换 PWM。
++- `AX_ROBOT_Stop` 同时清除电机输出、三轴目标、轮子目标和四路 PID 历史，清零编码器采样起点。
++- 按键测试动作每周期重新计算并应用目标，约 400ms 到时停车；动作中产生的按键事件被消费，不排队再次起步。
++- `APP_KEY_TURN_TEST=1` 时，UART2/3 和 CAN 的接收中断只清除/取走输入，不解析控制命令；UART4、SBUS、PS2 不初始化或创建后台模式切换任务。发送遥测保留。
++- Robot=4、Key=3、Trivia=2、Light/Disp=1，全部在 FreeRTOS 的 0～4 范围内。
++- 机器人任务栈增加到 512 个字，启动任务增加到 256 个字；所有任务创建检查返回值。
++- 控制间隔超过 40ms、传感器失败、轮速绝对值超过 0.25m/s 会锁存停机。后台校准或 EEPROM 操作挂起控制任务前先禁用并停车，避免留下 PWM。
++- 原有两条 ARM 警告已修正；测试模式不编译未使用的接收解析状态变量。
++
++本版没有加入平滑加减速模块，也没有实现循迹、视觉导航或转动到指定角度后停止的功能。
++
++## 当前行为与调试限制
++
++这是按键测试固件，不是完整比赛策略固件：
++
++1. 上电先松开两个按键，等待开机流程结束。
++2. 短按 KA 并松手：左转弧线；短按 KB 并松手：右转弧线；长按不触发。
++3. 每次请求 0.08m/s、35% 转向强度，约 400ms 后停车。适配器向零取整，实际整数前进目标约 79mm/s。
++4. 初始纵向请求上限 0.12m/s、角速度上限 0.60rad/s、单轮目标上限 0.12m/s，避免直接沿用原 1.5m/s 大速度范围。
++5. 这些是软件目标限制，不是实测最高轮速、制动距离或转角精度。PID 增益、轮距与滑移仍需实车调校。
++
++Keil Watch 可观察：
++
++| 变量/接口 | 含义 |
++| --- | --- |
++| `ax_motion_fault=0` | 未触发软件故障锁存 |
++| `ax_motion_fault=1` | IMU 未就绪或读取失败 |
++| `ax_motion_fault=2` | 控制周期异常 |
++| `ax_motion_fault=3` | 检测到超速 |
++| `ax_motion_fault=4` | 任务创建失败 |
++| `ax_robot_move_enable` | 运动使能；故障时为 0 |
++| `ax_control_dt_s` | 实际控制间隔秒数 |
++| `R_Wheel_A/B/C/D.RT` | 经过方向修正后的实测轮速 |
++| `AX_MPU6050_GetKind()` | 0=未知、1=MPU6050、2=QMI8658 |
++
++故障后应检查原因并复位，程序不会自行重新启动运动。不要为了让车动而强制把使能变量改回 1。
++
++## 编译和烧录
++
++工程文件为 `Project/keytest.uvprojx`，目标 `OpenCTR`，已加入新编码器扩展和 I2C 源文件。建议完整解压到短的英文路径（例如 `C:\robot\competition`），不要只复制主函数。
++
++可用两种编译方式：
++
++```powershell
++# 本机已验证的 ARMCC 直接编译；脚本默认工具位于 C:\Keil_v5。
++pwsh -File tools/build-arm.ps1
++```
++
++或者在 Keil 打开 `Project/keytest.uvprojx`，使用 ARM Compiler 5.06 update 7，执行 Rebuild。项目设置会生成 `Project/Objects/xproject.hex`。
++
++直接构建脚本的固件是 **`Project/Build/competition.hex`**，与源码、日志、校验结果一起交付。本机 uVision 前端此前返回 15，没有取得前端构建结果；本版通过的是直接 ARM 工具链构建，不能把它等同于已验证 Keil GUI 一键构建/下载。
++
++烧录时确认芯片型号 STM32F407VET6：
++
++1. 使用 DAPLink/CMSIS-DAP 时，在 Keil 的 Debug 中选择 CMSIS-DAP；若使用其他下载器则选对应驱动。
++2. 在 Flash Download 中选择 STM32F4xx 512KB Flash 算法，Flash 起始地址 0x08000000。原工程下载器设置可能仍为 ULINK2，不能直接沿用成 DAPLink。
++3. 连接 SWD 和供电，选择下载后复位运行；首次将四轮架空，分别检查 KA/KB 的方向、反馈和到时停车。
++4. 看四轮前进时经过符号修正的 RT 是否同为正、轮子位置是否对应 MA/MB/MC/MD。实际接线与手册不同，应先核对接线，再仅修改对应的 PWM/编码器符号。
++5. 架空测试通过后，再做低速落地测试及轮距/滑移标定。本次未操作主板、未下载固件、未证明实车能按预期行驶。
++
++不能只修改 `APP_KEY_TURN_TEST=0` 就宣称遥控或比赛模式已验收；关闭测试宏后需要另行验证控制来源、失联停车与正常模式的全流程。
++
++## 已完成的验证
++
++- 主机：6,277 项检查通过，实际编译 FWD 运动学、转向适配、PID、IMU 核心及编码器扩展实现；硬件/RTOS 接口使用测试替身。
++- 测试包含正/负编码器回绕、待处理中断读数、超过 16 位的计数、P30 反馈与 PWM 符号、左右转向、轮速限制、停止后 PID 清零、实际周期换算、MPU/QMI 字节序与量程归一化、通信失败锁存，以及从当前生产文件提取的按键状态机和 Robot_Task 延迟停车路径。
++- ARM：87 个 C/汇编单元编译链接通过，0 错误、0 警告；具体映像大小和 SHA256 见 `验证结果.json`。
++- HEX：逐条校验记录校验和，检查地址范围、初始栈与复位向量；在链接映像中核对 TIM3/TIM4 更新中断。
++- 实车：未进行。因此机械方向、实际计数/轮、I2C 时序、电压校准、控制周期稳定性和地面轨迹仍需硬件验证。
++
++复现主机测试：有 Python 和 MSVC C 工具时执行 `python tests/run_host_tests.py`。本机 Python 命令原为 Windows 占位程序，本次实际使用 Codex 随附 Python，不修改系统 Python 配置。
++
++## 依据文件
++
++- 新加入的《竞赛小车底盘培训手册 安装清单与STM32篇》：实车清单、1.3、步骤 8、8.2/8.3、9.1/9.2 及验收表。
++- 新加入的《塔克创新 R20系列机器人底盘开发手册V1.2》：第 16～17 页电机、编码器及通道定义；这是通用平台手册，不能覆盖参赛车的换轮/换电机参数。
++- 厂家 `OpenCTR_H60V37_Basis_Demo_V1.4.0.zip`：V3.7 按键、LED、蜂鸣器、QMI8658 与电机/编码器引脚。只读对照，未修改该资料所在工作区。
++
++原始资料自身的错误文字没有回写进用户文档，已在本说明中列出；全部软件改动均位于这份独立修正版。

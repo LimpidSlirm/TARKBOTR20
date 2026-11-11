@@ -1,0 +1,18 @@
+{
+  "source": "User screen recording: Lane preview _ Q_Escape to quit _ NO MOTOR OUTPUT 2026-11-10 20-07-16.mp4",
+  "source_frame": 0,
+  "screen_camera_crop_xywh": [
+    0,
+    120,
+    640,
+    480
+  ],
+  "fixture_crop_in_camera_xywh": [
+    0,
+    140,
+    480,
+    340
+  ],
+  "purpose": "Colour segmentation only, not lane/curvature ground truth; screen recording has video compression.",
+  "sha256": "b96e8130cd6cdb169fee4f27484dc089a4714ca7ddebf46107049fdfdd44e5d7"
+}

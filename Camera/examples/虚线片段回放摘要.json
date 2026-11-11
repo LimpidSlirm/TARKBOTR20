@@ -1,0 +1,45 @@
+{
+  "source_filename": "Lane preview _ Q_Escape to quit _ NO MOTOR OUTPUT 2026-11-10 20-47-29.mp4",
+  "source_sha256": "ef4cda0b4effa3d726213a137c28f022055e169fe3a6c1461e04aa89a0be9e27",
+  "screen_crop_xywh": [
+    0,
+    142,
+    640,
+    480
+  ],
+  "frames": 466,
+  "reported_states": {
+    "LOST": 466
+  },
+  "pairing_stops": {
+    "near_seed_missing": 466
+  },
+  "frames_with_fragments": 466,
+  "frames_with_paired_observations": 0,
+  "frames_with_identical_existing_geometry": 466,
+  "baseline_commit": "2251f573bce984c70b5118fef19676ef0e11147b",
+  "preview_shapes": [
+    [
+      732,
+      1280,
+      3
+    ],
+    [
+      732,
+      1280,
+      3
+    ],
+    [
+      732,
+      1280,
+      3
+    ]
+  ],
+  "command_sent": false,
+  "limitations": [
+    "Colour fragments are unassigned candidates, not a complete road or chosen route.",
+    "No new gap bridging, cross-frame tracking, calibration, or route selection.",
+    "Relative image ROI zones are not physical near/mid/far distances.",
+    "Screen preview replay, not original camera stream or ground truth."
+  ]
+}

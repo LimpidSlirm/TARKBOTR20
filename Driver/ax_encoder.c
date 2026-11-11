@@ -26,7 +26,8 @@
   ******************************************************************************
   */
 
-#include "ax_encoder.h" 
+#include "ax_encoder.h"
+#include "ax_encoder_extended.h" 
 
 /**
   * @简  述  编码器初始化
@@ -80,6 +81,7 @@ void AX_ENCODER_A_Init(void)
   
     TIM_Cmd(TIM2, ENABLE);   	
 	
+    AX_ENCODER_ExtendedInit(0u);
 }
 
 /**
@@ -87,20 +89,14 @@ void AX_ENCODER_A_Init(void)
   * @参  数  无
   * @返回值  计数器当前值
   */
-uint16_t AX_ENCODER_A_GetCounter(void)
-{
-	return TIM2->CNT;
-}
+int32_t AX_ENCODER_A_GetCounter(void) { return AX_ENCODER_ReadExtended(0u); }
 
 /**
   * @简  述  编码器设置计数器数值
   * @参  数  count  计数器数值
   * @返回值  无
   */
-void AX_ENCODER_A_SetCounter(uint16_t count)
-{
-	TIM2->CNT = count;
-}
+void AX_ENCODER_A_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(0u,count); }
 
 
 /**
@@ -151,6 +147,7 @@ void AX_ENCODER_B_Init(void)
   
     TIM_Cmd(TIM3, ENABLE);   	
 	
+    AX_ENCODER_ExtendedInit(1u);
 }
 
 /**
@@ -158,20 +155,14 @@ void AX_ENCODER_B_Init(void)
   * @参  数  无
   * @返回值  计数器当前值
   */
-uint16_t AX_ENCODER_B_GetCounter(void)
-{
-	return TIM3->CNT;
-}
+int32_t AX_ENCODER_B_GetCounter(void) { return AX_ENCODER_ReadExtended(1u); }
 
 /**
   * @简  述  编码器设置计数器数值
   * @参  数  count  计数器数值
   * @返回值  无
   */
-void AX_ENCODER_B_SetCounter(uint16_t count)
-{
-	TIM3->CNT = count;
-}
+void AX_ENCODER_B_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(1u,count); }
 
 /**
   * @简  述  编码器初始化
@@ -221,6 +212,7 @@ void AX_ENCODER_C_Init(void)
   
     TIM_Cmd(TIM5, ENABLE);   	
 	
+    AX_ENCODER_ExtendedInit(2u);
 }
 
 /**
@@ -228,20 +220,14 @@ void AX_ENCODER_C_Init(void)
   * @参  数  无
   * @返回值  计数器当前值
   */
-uint16_t AX_ENCODER_C_GetCounter(void)
-{
-	return TIM5->CNT;
-}
+int32_t AX_ENCODER_C_GetCounter(void) { return AX_ENCODER_ReadExtended(2u); }
 
 /**
   * @简  述  编码器设置计数器数值
   * @参  数  count  计数器数值
   * @返回值  无
   */
-void AX_ENCODER_C_SetCounter(uint16_t count)
-{
-	TIM5->CNT = count;
-}
+void AX_ENCODER_C_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(2u,count); }
 
 /**
   * @简  述  编码器初始化
@@ -291,6 +277,7 @@ void AX_ENCODER_D_Init(void)
   
     TIM_Cmd(TIM4, ENABLE);   	
 	
+    AX_ENCODER_ExtendedInit(3u);
 }
 
 /**
@@ -298,19 +285,13 @@ void AX_ENCODER_D_Init(void)
   * @参  数  无
   * @返回值  计数器当前值
   */
-uint16_t AX_ENCODER_D_GetCounter(void)
-{
-	return TIM4->CNT;
-}
+int32_t AX_ENCODER_D_GetCounter(void) { return AX_ENCODER_ReadExtended(3u); }
 
 /**
   * @简  述  编码器设置计数器数值
   * @参  数  count  计数器数值
   * @返回值  无
   */
-void AX_ENCODER_D_SetCounter(uint16_t count)
-{
-	TIM4->CNT = count;
-}
+void AX_ENCODER_D_SetCounter(uint16_t count) { AX_ENCODER_SetExtended(3u,count); }
 
 /******************* (C) 版权 2023 XTARK **************************************/

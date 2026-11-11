@@ -1,0 +1,28 @@
+{
+  "roi_top": 0.25,
+  "roi_bottom": 0.96,
+  "reference_x": 0.5,
+  "scan_step": 6,
+  "min_run_px": 3,
+  "max_run_px": 30,
+  "min_lane_width_fraction": 0.15,
+  "max_lane_width_fraction": 0.75,
+  "max_step_shift_px": 22.0,
+  "max_width_change_px": 24.0,
+  "ambiguity_margin_px": 5.0,
+  "max_gap_rows": 3,
+  "min_pairs": 16,
+  "min_coverage": 0.55,
+  "degree": 3,
+  "pixel_rmse_limit": 4.0,
+  "metric_rmse_limit": 0.02,
+  "min_metric_span_m": 0.15,
+  "min_lane_width_m": 0.15,
+  "max_lane_width_m": 1.0,
+  "max_heading_slope": 1.5,
+  "lookahead_x_m": 0.6,
+  "colors": [
+    {"name": "white", "lower": [0, 0, 170], "upper": [179, 85, 255]},
+    {"name": "yellow", "lower": [15, 75, 100], "upper": [40, 255, 255]}
+  ]
+}
