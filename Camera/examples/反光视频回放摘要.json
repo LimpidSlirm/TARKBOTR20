@@ -1,0 +1,46 @@
+{
+  "source_filename": "Lane preview _ Q_Escape to quit _ NO MOTOR OUTPUT 2026-11-10 20-07-16.mp4",
+  "source_sha256": "2b24117c10417add070e231cefd449e66e73fe27acc70bd200a84a43d94bb926",
+  "screen_crop_xywh": [
+    0,
+    120,
+    640,
+    480
+  ],
+  "frames": 567,
+  "frame_size": [
+    640,
+    480
+  ],
+  "comparison_roi_rows": [
+    192,
+    460
+  ],
+  "candidate_pixel_totals": {
+    "generic": 39317598,
+    "track": 7099271
+  },
+  "reported_states": {
+    "generic": {
+      "AMBIGUOUS": 73,
+      "LOST": 494
+    },
+    "track": {
+      "LOST": 524,
+      "AMBIGUOUS": 18,
+      "NORMAL": 25
+    }
+  },
+  "manually_checked_patch_fractions": {
+    "pale_yellow_retained": 0.9669421487603306,
+    "bright_nonboundary_before": 1.0,
+    "bright_nonboundary_after": 0.0
+  },
+  "command_sent": false,
+  "limitations": [
+    "Compressed screen preview replay, not original camera stream or metric ground truth.",
+    "Mask area and NORMAL status are not accuracy scores.",
+    "Camera tilt/off-centre framing/out-of-view boundaries remain; no relaxed pairing gates.",
+    "No real vehicle movement or camera exposure changes."
+  ]
+}
