@@ -29,6 +29,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
+#include "ax_board_config.h"
+
+/* Maximum bytes returned by AX_UART4_GetData, including the command ID. */
+#define AX_UART4_RX_DATA_MAX 16u
+
+/* Shared bounded APP parser; USART2 feeds it on H60 V3.7. */
+void AX_BLUETOOTH_ReceiveByte(uint8_t byte);
+extern volatile uint32_t ax_bluetooth_rx_bytes;
+extern volatile uint32_t ax_bluetooth_rx_frames;
+extern volatile uint8_t ax_bluetooth_last_byte;
 
 //手柄模式按键定义
 #define  APP_JOY1_Y         0x01    //Y按键

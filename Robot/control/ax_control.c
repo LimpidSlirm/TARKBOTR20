@@ -26,6 +26,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ax_control.h"
 #include "ax_robot.h"
+#include "ax_kinematics.h"
+#include "main.h"
 
 /**
   * @简  述  处理PS2手柄控制命令
@@ -136,77 +138,68 @@ void AX_CTL_Ps2(void)
   */
 void AX_CTL_App(void)
 {
-	static uint8_t comdata[16];
-	
-	//接收蓝牙APP串口数据
-	if(AX_UART4_GetData(comdata))
-	{
-		//摇杆模式运动控制帧
-		if((comdata[0] == ID_BLERX_YG))
-		{
-			R_Vel.TG_IX = (int16_t)(  6*(int8_t)comdata[4] );
-			R_Vel.TG_IY = (int16_t)( -6*(int8_t)comdata[3] );
-			
-			//如果是阿克曼机器人
-			#if (ROBOT_TYPE == ROBOT_AKM)
-				ax_akm_angle = (int16_t)(-5*(int8_t)comdata[1] );
-			#else
-				R_Vel.TG_IW = (int16_t)(-20*(int8_t)comdata[1] );
-			#endif	
-		}
-		
-		//手柄模式运动控制帧
-		if((comdata[0] == ID_BLERX_SB))
-		{
+    static TickType_t last_motion_tick;
+    static uint8_t motion_valid;
+    uint8_t comdata[AX_UART4_RX_DATA_MAX];
+    uint8_t count = AX_UART4_GetData(comdata);
+    TickType_t now = xTaskGetTickCount();
+#if ROBOT_TYPE != ROBOT_AKM
+    int32_t tilt;
+#endif
 
-			R_Vel.TG_IX = (int16_t)(  6*(int8_t)comdata[4] );
-			R_Vel.TG_IY = (int16_t)( -6*(int8_t)comdata[3] );
-			
-			
-			//如果是阿克曼机器人
-			#if (ROBOT_TYPE == ROBOT_AKM)
-				ax_akm_angle = (int16_t)(-5*(int8_t)comdata[1] );
-			#else
-				R_Vel.TG_IW = (int16_t)(-20*(int8_t)comdata[1] );
-			#endif
-		}
-		
-		//重力模式运动控制帧
-		if(comdata[0] == ID_BLERX_ZL)
-		{
-			R_Vel.TG_IX = (int16_t)( -6*(int8_t)comdata[3] );
-			
-			//如果是阿克曼机器人
-			#if (ROBOT_TYPE == ROBOT_AKM)
-				ax_akm_angle = (int16_t)(-6*(int8_t)comdata[2] );
-			#else
-				R_Vel.TG_IW = (int16_t)(-30*(int8_t)comdata[2] );
-			#endif
-		}
-		
-		//灯光效果控制帧
-		if(comdata[0] == ID_BLERX_LG)
-		{
-			R_Light.M  = comdata[1];
-			R_Light.S  = comdata[2];
-			R_Light.T  = comdata[3];
-			R_Light.R  = comdata[4];
-			R_Light.G  = comdata[5];
-			R_Light.B  = comdata[6];
-		}
-		
-		//灯光效果保存
-		if(comdata[0] == ID_BLERX_LS)
-		{
-			if(comdata[1] == 0x55)
-			{
-				//执行灯光效果保存动作
-				ax_light_save_flag = 1;
-			}
-		}
-	}
+    if (count >= 2u && comdata[0] == ID_BLERX_CM && comdata[1] == 0x55u) {
+        /* Transfer ownership in the control task, never in the serial ISR. */
+        AX_ROBOT_Stop();
+        motion_valid = 0u;
+        ax_control_mode = CTL_APP;
+        ax_beep_ring = BEEP_SHORT;
+    }
+    if (ax_control_mode != CTL_APP) {
+        motion_valid = 0u;
+        return;
+    }
+    if (ax_robot_move_enable && !ax_motion_fault) {
+        if (count >= 5u && (comdata[0] == ID_BLERX_YG || comdata[0] == ID_BLERX_SB)) {
+            R_Vel.TG_IX = (int16_t)(6 * (int8_t)comdata[4]);
+            R_Vel.TG_IY = (int16_t)(-6 * (int8_t)comdata[3]);
+#if ROBOT_TYPE == ROBOT_AKM
+            ax_akm_angle = (int16_t)(-5 * (int8_t)comdata[1]);
+#else
+            R_Vel.TG_IW = (int16_t)(-20 * (int8_t)comdata[1]);
+#endif
+            motion_valid = 1u;
+            last_motion_tick = now;
+        } else if (count >= 4u && comdata[0] == ID_BLERX_ZL) {
+            R_Vel.TG_IX = (int16_t)(-6 * (int8_t)comdata[3]);
+            R_Vel.TG_IY = 0;
+#if ROBOT_TYPE == ROBOT_AKM
+            ax_akm_angle = (int16_t)(-6 * (int8_t)comdata[2]);
+#else
+            /* Roll changes yaw, which FWD kinematics turns into wheel difference.
+             * Use the entire APP angle range instead of saturating at +/-20.
+             */
+            tilt = (int8_t)comdata[2];
+            if (tilt > APP_GRAVITY_STEER_FULL_SCALE) tilt = APP_GRAVITY_STEER_FULL_SCALE;
+            if (tilt < -APP_GRAVITY_STEER_FULL_SCALE) tilt = -APP_GRAVITY_STEER_FULL_SCALE;
+            R_Vel.TG_IW = (int16_t)(-tilt * R_VW_LIMIT / APP_GRAVITY_STEER_FULL_SCALE);
+#endif
+            motion_valid = 1u;
+            last_motion_tick = now;
+        }
+    }
+    if (count >= 7u && comdata[0] == ID_BLERX_LG) {
+        R_Light.M = comdata[1]; R_Light.S = comdata[2]; R_Light.T = comdata[3];
+        R_Light.R = comdata[4]; R_Light.G = comdata[5]; R_Light.B = comdata[6];
+    } else if (count >= 2u && comdata[0] == ID_BLERX_LS && comdata[1] == 0x55u) {
+        ax_light_save_flag = 1u;
+    }
+    /* Lights, handshake, noise and short packets do not renew the motion lease. */
+    if (!ax_robot_move_enable || ax_motion_fault || !motion_valid ||
+        (TickType_t)(now - last_motion_tick) >= pdMS_TO_TICKS(APP_BLUETOOTH_TIMEOUT_MS)) {
+        motion_valid = 0u;
+        AX_ROBOT_Stop();
+    }
 }
-
 /**
   * @简  述  处理SBUS航模遥控器控制命令
   * @参  数  无

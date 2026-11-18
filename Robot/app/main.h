@@ -36,6 +36,16 @@
 #define APP_KEY_TURN_TEST 0
 #endif
 
+#ifndef APP_BLUETOOTH_ENABLE
+#define APP_BLUETOOTH_ENABLE 1
+#endif
+
+/* The APP must keep sending motion commands while driving. */
+#define APP_BLUETOOTH_TIMEOUT_MS 500u
+
+/* Official APP V1.0.1 sends signed roll/pitch angles in +/-90 degrees. */
+#define APP_GRAVITY_STEER_FULL_SCALE 90
+
 #if APP_KEY_TURN_TEST
 void Key_Motion_Step(void);
 #endif

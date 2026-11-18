@@ -144,8 +144,17 @@ void Robot_Task(void* parameter)
         if (!AX_MPU6050_IsReady()) { AX_ROBOT_LatchFault(1u); }
 
 		
+#if APP_BLUETOOTH_ENABLE
+        /* Poll the connection frame even while keys own the chassis. */
+        AX_CTL_App();
+#endif
 #if APP_KEY_TURN_TEST
-        Key_Motion_Step();
+        if (ax_control_mode == CTL_APP) {
+            if (ax_robot_move_enable && !ax_motion_fault) AX_ROBOT_Kinematics();
+            else AX_ROBOT_Stop();
+        } else {
+            Key_Motion_Step();
+        }
 #else
         if (ax_motion_fault) ax_robot_move_enable = 0u;
 
@@ -153,7 +162,9 @@ void Robot_Task(void* parameter)
 		if(ax_control_mode != 0)
 		{
 			if      (ax_control_mode == CTL_PS2)    AX_CTL_Ps2();    //PS2手柄控制
+#if !APP_BLUETOOTH_ENABLE
 			else if (ax_control_mode == CTL_APP)    AX_CTL_App();    //APP控制
+#endif
 			else if (ax_control_mode == CTL_RMS)    AX_CTL_RemoteSbus();   //SBUS航模遥控器控制
 		}
 		
@@ -276,7 +287,7 @@ void Trivia_Task(void* parameter)
 	
 	//陀螺仪校准变量
 	static int16_t gyro_data[3];
-    int32_t gyro_sum[3];
+    int32_t gyro_sum[3]; 
 	
 
 	while (1)
@@ -392,7 +403,7 @@ void Trivia_Task(void* parameter)
 				//计算偏差和
 				gyro_sum[0] += gyro_data[0];
 				gyro_sum[1] += gyro_data[1];
-				gyro_sum[2] += gyro_data[2];
+				gyro_sum[2] += gyro_data[2]; 		
 			}
 			
 			//计算平均偏差值

@@ -1,0 +1,21 @@
+{
+  "utc": "2026-11-18T14:28:15.371243+00:00",
+  "hex_sha256": "17f331997bed1eb91e66512ad35c08c0a731bc54c54ca10f72787c65197c7fc0",
+  "probe_uid": "LU_2022_8888",
+  "readback_verified": true,
+  "chip_id": "0x101f6413",
+  "flash_kib": 512,
+  "verified_bytes": 44252,
+  "readback_data_sha256": "ed12861e224d7b38bd7f06e6bc371865aafa9bb2044842c11ed87f726408e491",
+  "ax_motion_fault": 0,
+  "ax_robot_move_enable": 1,
+  "ax_control_mode": 0,
+  "bluetooth_uart": "USART2 (PA2/PA3)",
+  "uart2_cr1": "0x202c",
+  "uart2_brr": "0x16c",
+  "uart2_clock_enabled": true,
+  "uart2_ready": true,
+  "ax_bluetooth_rx_bytes": 0,
+  "ax_bluetooth_rx_frames": 0,
+  "core_state": "RUNNING"
+}

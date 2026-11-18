@@ -46,4 +46,13 @@ void TIM_ITConfig(TIM_TypeDef *timer,unsigned interrupt,unsigned enabled);
 void NVIC_Init(NVIC_InitTypeDef *irq);
 void TIM3_IRQHandler(void);
 void TIM4_IRQHandler(void);
+#define UART4 ((void *)4)
+#define UART4_IRQn 4u
+#define USART2 ((void *)2)
+#define USART2_IRQn 38u
+#define USART_IT_RXNE 1u
+unsigned USART_GetITStatus(void *uart, unsigned interrupt);
+uint16_t USART_ReceiveData(void *uart);
+void NVIC_DisableIRQ(unsigned irq);
+void NVIC_EnableIRQ(unsigned irq);
 #endif

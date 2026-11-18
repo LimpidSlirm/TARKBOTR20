@@ -1,7 +1,6 @@
 # ============================================================
 #  Keil MDK 编译输出
 # ============================================================
-Project/Build/
 Project/Objects/
 Project/Listings/
 Project/DebugConfig/

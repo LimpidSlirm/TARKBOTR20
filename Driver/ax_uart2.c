@@ -45,8 +45,9 @@
 #include <stdio.h>
 
 #include "ax_robot.h"
+#include "main.h"
 
-#if !APP_KEY_TURN_TEST
+#if !APP_KEY_TURN_TEST && !(APP_BLUETOOTH_ENABLE && AX_BLUETOOTH_USE_USART2)
 static uint8_t uart2_rx_con=0;       //接收计数器
 static uint8_t uart2_rx_checksum;    //帧头部分校验和
 static uint8_t uart2_rx_buf[40];     //接收缓冲，数据内容小于等于32Byte
@@ -113,7 +114,10 @@ void AX_UART2_Init(uint32_t baud)
   */
 void USART2_IRQHandler(void)
 {
-#if APP_KEY_TURN_TEST
+#if APP_BLUETOOTH_ENABLE && AX_BLUETOOTH_USE_USART2
+    if (USART_GetITStatus(USART2,USART_IT_RXNE)!=RESET)
+        AX_BLUETOOTH_ReceiveByte((uint8_t)USART_ReceiveData(USART2));
+#elif APP_KEY_TURN_TEST
     if (USART_GetITStatus(USART2,USART_IT_RXNE)!=RESET) (void)USART_ReceiveData(USART2);
 #else
 

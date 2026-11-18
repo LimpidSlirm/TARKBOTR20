@@ -79,3 +79,4 @@ $ErrorActionPreference = 'Stop'
 if ($rc -ne 0) { exit $rc }
 Select-String -LiteralPath $log -Pattern 'warning:|error:' | ForEach-Object { $_.Line }
 Write-Output ('ARM image generated: ' + $image)
+

@@ -18,6 +18,9 @@ for name in re.findall(r'#include "([^"]+)"', header):
     (STUBS / name).write_text('/* Host hardware interface only. */\n', encoding='utf-8')
 (STUBS / 'ax_mpu6050.h').write_text(
     '#include "../../../../Driver/ax_mpu6050.h"\n', encoding='utf-8')
+for name, path in [('main.h', 'Robot/app/main.h'), ('ax_uart4.h', 'Driver/ax_uart4.h'),
+                   ('ax_board_config.h', 'Robot/ax_board_config.h')]:
+    (STUBS / name).write_text('#include "' + (ROOT / path).as_posix() + '"\n', encoding='utf-8')
 
 
 def function(source, signature):
@@ -32,6 +35,9 @@ def function(source, signature):
 
 source = (ROOT / 'Robot/app/ax_robot.c').read_text(encoding='utf-8')
 main = (ROOT / 'Robot/app/main.c').read_text(encoding='utf-8')
+uart = (ROOT / 'Driver/ax_uart4.c').read_text(encoding='utf-8')
+uart2 = (ROOT / 'Driver/ax_uart2.c').read_text(encoding='utf-8')
+control = (ROOT / 'Robot/control/ax_control.c').read_text(encoding='utf-8')
 platform = (ROOT / 'Robot/platform/FreeRTOSConfig.h').read_text(encoding='utf-8')
 max_priorities = int(re.search(r'#define\s+configMAX_PRIORITIES\s+\(\s*(\d+)\s*\)', platform)[1])
 priorities = re.findall(r'#define\s+(\w*TASK_PRIO)\s+(\d+)', main)
@@ -44,6 +50,12 @@ steps = '\n'.join((
     function(source, 'void AX_ROBOT_LatchFault(uint8_t code)'),
     function(main, 'static void Key_Motion_Init(void)'),
     function(main, 'void Key_Motion_Step(void)'),
+    uart[uart.index('static volatile uint8_t uart4_rx_ok;'):uart.index('static uint8_t uart4_tx_buf')],
+    function(uart, 'void AX_BLUETOOTH_ReceiveByte(uint8_t byte)'),
+    function(uart, 'void UART4_IRQHandler(void)'),
+    function(uart2, 'void USART2_IRQHandler(void)'),
+    function(uart, 'uint8_t AX_UART4_GetData(uint8_t *pbuf)'),
+    function(control, 'void AX_CTL_App(void)'),
     function(source, 'void Robot_Task(void* parameter)'),
     function(main, 'static int16_t AX_StartupGyroOffset(int32_t sum)'),
 ))

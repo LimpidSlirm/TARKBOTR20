@@ -10,4 +10,9 @@
 #define AX_BOARD_H60_V37 1
 #endif
 
+/* H60 V3.7 EXP Bluetooth uses PA2/PA3 (USART2), not legacy PC10/PC11. */
+#ifndef AX_BLUETOOTH_USE_USART2
+#define AX_BLUETOOTH_USE_USART2 AX_BOARD_H60_V37
+#endif
+
 #endif

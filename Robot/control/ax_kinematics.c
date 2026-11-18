@@ -131,7 +131,7 @@ void AX_ROBOT_Kinematics(void)
 	R_Wheel_B.RT = AX_FWD_ENCODER_SIGN_B * (double)AX_ENCODER_ReadDelta(1u) * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s);
 	R_Wheel_C.RT = AX_FWD_ENCODER_SIGN_C * (double)AX_ENCODER_ReadDelta(2u) * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s);
 	R_Wheel_D.RT = AX_FWD_ENCODER_SIGN_D * (double)AX_ENCODER_ReadDelta(3u) * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s);
-
+	
     if (fabs(R_Wheel_A.RT)>AX_FWD_OVERSPEED_MPS || fabs(R_Wheel_B.RT)>AX_FWD_OVERSPEED_MPS ||
         fabs(R_Wheel_C.RT)>AX_FWD_OVERSPEED_MPS || fabs(R_Wheel_D.RT)>AX_FWD_OVERSPEED_MPS) {
         AX_ROBOT_LatchFault(3u); return;
@@ -209,9 +209,9 @@ void AX_ROBOT_Kinematics(void)
 	
 	//设置电机PWM值
 	AX_MOTOR_A_SetSpeed(AX_FWD_MOTOR_SIGN_A * R_Wheel_A.PWM);
-	AX_MOTOR_B_SetSpeed(AX_FWD_MOTOR_SIGN_B * R_Wheel_B.PWM);
+	AX_MOTOR_B_SetSpeed(AX_FWD_MOTOR_SIGN_B * R_Wheel_B.PWM);  
 	AX_MOTOR_C_SetSpeed(AX_FWD_MOTOR_SIGN_C * R_Wheel_C.PWM);
-	AX_MOTOR_D_SetSpeed(AX_FWD_MOTOR_SIGN_D * R_Wheel_D.PWM);
+	AX_MOTOR_D_SetSpeed(AX_FWD_MOTOR_SIGN_D * R_Wheel_D.PWM); 
 	
 	//输出调试信息
 	//printf("@%f  %f  %f %f  \r\n",R_Wheel_A.RT,R_Wheel_B.RT, R_Wheel_C.RT ,R_Wheel_D.RT);

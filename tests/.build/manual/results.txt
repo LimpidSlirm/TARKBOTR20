@@ -1,0 +1,4 @@
+PASS: simulated A/B direction +1, angle 89.44 deg
+PASS: simulated A/B direction -1, angle -89.44 deg
+PASS: Bluetooth framing, handshake, task ownership, reverse, neutral, timeout, tick wrap and fault lock
+PASS: 34848 checks, real FWD/turn/PID/IMU code, negative B overspeed, startup and production task; no hardware

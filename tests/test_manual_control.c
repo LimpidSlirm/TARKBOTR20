@@ -6,6 +6,10 @@
 #include "ax_mpu6050.h"
 #include "ax_encoder_extended.h"
 #include "ax_motion_sequence.h"
+#include "main.h"
+#if !AX_BLUETOOTH_USE_USART2
+#error "This suite must exercise the H60 V3.7 USART2 Bluetooth path"
+#endif
 #include <assert.h>
 #include <math.h>
 #include <setjmp.h>
@@ -14,6 +18,8 @@
 
 ROBOT_Velocity R_Vel;
 ROBOT_Imu R_Imu;
+ROBOT_Light R_Light;
+uint8_t ax_beep_ring, ax_light_save_flag;
 ROBOT_Wheel R_Wheel_A,R_Wheel_B,R_Wheel_C,R_Wheel_D;
 int16_t ax_motor_kp=800,ax_motor_kd=1000;
 uint8_t ax_robot_move_enable=1u,ax_control_mode=CTL_ROS;
@@ -55,7 +61,11 @@ void vTaskDelayUntil(TickType_t *previous,TickType_t increment)
 }
 void ROBOT_SendDataToRos(void){}
 void AX_CTL_Ps2(void){}
-void AX_CTL_App(void){}
+static uint8_t serial_byte;
+unsigned USART_GetITStatus(void *uart,unsigned interrupt){(void)uart;(void)interrupt;return 1u;}
+uint16_t USART_ReceiveData(void *uart){(void)uart;return serial_byte;}
+void NVIC_DisableIRQ(unsigned irq){(void)irq;}
+void NVIC_EnableIRQ(unsigned irq){(void)irq;}
 void AX_CTL_RemoteSbus(void){}
 void ROBOT_IMUHandle(void)
 {
@@ -301,6 +311,121 @@ static int test_action(int direction)
     printf("PASS: simulated A/B direction %+d, angle %.2f deg\n",direction,(double)(angle*180.0f/3.141592654f));
     return 0;
 }
+static void bluetooth_byte(uint8_t byte)
+{
+    serial_byte=byte;
+#if AX_BLUETOOTH_USE_USART2
+    USART2_IRQHandler();
+#else
+    UART4_IRQHandler();
+#endif
+}
+static void bluetooth_frame(const uint8_t *data,unsigned count,int corrupt)
+{
+    unsigned i;
+    uint8_t checksum=(uint8_t)(0xaau+0x55u+count+4u);
+    bluetooth_byte(0xaau);bluetooth_byte(0x55u);bluetooth_byte((uint8_t)(count+4u));
+    for(i=0;i<count;i++) {bluetooth_byte(data[i]);checksum=(uint8_t)(checksum+data[i]);}
+    bluetooth_byte((uint8_t)(checksum+(corrupt ? 1u : 0u)));
+}
+static int test_bluetooth(void)
+{
+    const uint8_t connect[]={ID_BLERX_CM,0x55u};
+    const uint8_t drive[]={ID_BLERX_YG,0u,0u,0u,10u};
+    const uint8_t reverse[]={ID_BLERX_SB,0u,0u,0u,246u};
+    const uint8_t neutral[]={ID_BLERX_YG,0u,0u,0u,0u};
+    const uint8_t short_drive[]={ID_BLERX_YG,0u};
+    const uint8_t lights[]={ID_BLERX_LG,1u,2u,3u,4u,5u,6u};
+    uint8_t gravity[]={ID_BLERX_ZL,0u,0u,246u};
+    float small_difference,large_difference;
+    uint8_t buffer[AX_UART4_RX_DATA_MAX+1u];
+    unsigned i,j;
+    ax_motion_fault=0u;ax_robot_move_enable=1u;ax_control_mode=CTL_ROS;
+    ticks=1000u;AX_ROBOT_Stop();
+    bluetooth_frame(drive,sizeof(drive),0);AX_CTL_App();
+    CHECK(ax_control_mode==CTL_ROS && R_Vel.TG_IX==0);
+    R_Vel.TG_IX=80;AX_ROBOT_Kinematics();
+    bluetooth_frame(connect,sizeof(connect),1);AX_CTL_App();
+    CHECK(ax_control_mode==CTL_ROS);
+    bluetooth_frame(connect,sizeof(connect),0);
+    CHECK(ax_control_mode==CTL_ROS); /* ISR cannot change ownership or PWM. */
+    bluetooth_frame(drive,sizeof(drive),0); /* Unread connection is retained. */
+    AX_CTL_App();
+    CHECK(ax_control_mode==CTL_APP && R_Vel.TG_IX==0 && ax_beep_ring==BEEP_SHORT);
+    CHECK(ax_bluetooth_rx_bytes>0u && ax_bluetooth_rx_frames>0u);
+    for(i=0;i<4u;i++) CHECK(pwm[i]==0);
+    bluetooth_frame(drive,sizeof(drive),0);AX_CTL_App();AX_ROBOT_Kinematics();
+    CHECK(R_Vel.TG_IX==60 && pwm[0]>0);
+    ticks+=499u;bluetooth_frame(lights,sizeof(lights),0);AX_CTL_App();
+    CHECK(R_Vel.TG_IX==60 && R_Light.B==6u);
+    ticks+=1u;AX_CTL_App();
+    CHECK(R_Vel.TG_IX==0 && ax_control_mode==CTL_APP);
+    for(i=0;i<4u;i++) CHECK(pwm[i]==0);
+    bluetooth_frame(reverse,sizeof(reverse),0);AX_CTL_App();AX_ROBOT_Kinematics();
+    CHECK(R_Vel.TG_IX==-60 && pwm[0]<0);
+    ticks+=500u;bluetooth_frame(short_drive,sizeof(short_drive),0);AX_CTL_App();
+    CHECK(R_Vel.TG_IX==0);
+    bluetooth_frame(drive,sizeof(drive),0);AX_CTL_App();
+    bluetooth_frame(neutral,sizeof(neutral),0);AX_CTL_App();AX_ROBOT_Kinematics();
+    for(i=0;i<4u;i++) CHECK(pwm[i]==0);
+    ax_motion_fault=3u;ax_robot_move_enable=0u;
+    bluetooth_frame(connect,sizeof(connect),0);AX_CTL_App();
+    bluetooth_frame(drive,sizeof(drive),0);AX_CTL_App();
+    CHECK(ax_motion_fault==3u && !ax_robot_move_enable && R_Vel.TG_IX==0);
+    ax_motion_fault=0u;ax_robot_move_enable=1u;
+    ticks=0xffffff00u;
+    bluetooth_frame(drive,sizeof(drive),0);AX_CTL_App();
+    ticks+=499u;AX_CTL_App();CHECK(R_Vel.TG_IX==60);
+    ticks+=1u;AX_CTL_App();CHECK(R_Vel.TG_IX==0);
+    /* Every possible advertised frame length, including destination overflow. */
+    for(i=0u;i<256u;i++) {
+        uart4_rx_con=uart4_rx_ok=0u;
+        bluetooth_byte(0xaau);bluetooth_byte(0x55u);bluetooth_byte((uint8_t)i);
+        for(j=0u;j<260u;j++) bluetooth_byte(0u);
+        buffer[AX_UART4_RX_DATA_MAX]=0x5au;
+        CHECK(AX_UART4_GetData(buffer)<=AX_UART4_RX_DATA_MAX);
+        CHECK(buffer[AX_UART4_RX_DATA_MAX]==0x5au);
+    }
+    /* Full-size valid frame and corruption must not expose partial data. */
+    for(i=0u;i<AX_UART4_RX_DATA_MAX;i++) buffer[i]=(uint8_t)i;
+    bluetooth_frame(buffer,AX_UART4_RX_DATA_MAX,0);
+    CHECK(AX_UART4_GetData(buffer)==AX_UART4_RX_DATA_MAX);
+    for(i=0u;i<AX_UART4_RX_DATA_MAX;i++) CHECK(buffer[i]==i);
+    bluetooth_frame(drive,sizeof(drive),1);CHECK(AX_UART4_GetData(buffer)==0u);
+    /* Gravity roll is a proportional yaw input; no lateral command is created. */
+    gravity[2]=226u; /* -30 degrees => left turn, +200 mrad/s. */
+    bluetooth_frame(gravity,sizeof(gravity),0);AX_CTL_App();AX_ROBOT_Kinematics();
+    CHECK(R_Vel.TG_IX==60 && R_Vel.TG_IY==0 && R_Vel.TG_IW==200);
+    CHECK(R_Wheel_B.TG>R_Wheel_A.TG && R_Wheel_B.TG==R_Wheel_D.TG);
+    small_difference=R_Wheel_B.TG-R_Wheel_A.TG;
+    gravity[2]=196u; /* -60 => +400 mrad/s, with the joint wheel cap. */
+    bluetooth_frame(gravity,sizeof(gravity),0);AX_CTL_App();AX_ROBOT_Kinematics();
+    large_difference=R_Wheel_B.TG-R_Wheel_A.TG;
+    CHECK(R_Vel.TG_IW==400 && large_difference>small_difference);
+    CHECK(fabs(R_Wheel_A.TG)<=AX_FWD_MAX_WHEEL_MPS+0.000001f);
+    CHECK(fabs(R_Wheel_B.TG)<=AX_FWD_MAX_WHEEL_MPS+0.000001f);
+    gravity[2]=30u;
+    bluetooth_frame(gravity,sizeof(gravity),0);AX_CTL_App();AX_ROBOT_Kinematics();
+    CHECK(R_Vel.TG_IW==-200 && R_Wheel_A.TG>R_Wheel_B.TG && R_Vel.TG_IY==0);
+    gravity[2]=0u;
+    bluetooth_frame(gravity,sizeof(gravity),0);AX_CTL_App();AX_ROBOT_Kinematics();
+    CHECK(R_Vel.TG_IW==0 && R_Wheel_A.TG==R_Wheel_B.TG);
+    gravity[2]=127u;
+    bluetooth_frame(gravity,sizeof(gravity),0);AX_CTL_App();CHECK(R_Vel.TG_IW==-R_VW_LIMIT);
+    gravity[2]=128u;
+    bluetooth_frame(gravity,sizeof(gravity),0);AX_CTL_App();CHECK(R_Vel.TG_IW==R_VW_LIMIT);
+    /* Run the production task in APP mode; a pending key must not overwrite APP. */
+    ticks=1000u;bluetooth_frame(drive,sizeof(drive),0);AX_CTL_App();
+    key_motion_request=1;cycle=0u;gaps[0]=gaps[1]=20u;
+    if(!setjmp(finish_task)) Robot_Task(NULL);
+    CHECK(R_Vel.TG_IX==60 && ax_control_mode==CTL_APP && !ax_motion_fault);
+    ticks+=500u;cycle=0u;
+    if(!setjmp(finish_task)) Robot_Task(NULL);
+    CHECK(R_Vel.TG_IX==0 && ax_control_mode==CTL_APP);
+    for(i=0;i<4u;i++) CHECK(pwm[i]==0);
+    printf("PASS: Bluetooth framing, handshake, task ownership, reverse, neutral, timeout, tick wrap and fault lock\n");
+    return 0;
+}
 int main(void)
 {
     unsigned i;
@@ -319,7 +444,7 @@ int main(void)
     TIM4->CNT=34464u;CHECK(AX_ENCODER_ReadExtended(3u)==100000);
     AX_ROBOT_Stop();
     if(test_timer_deltas() || test_sensors() || test_drive() || test_task() || test_limits_and_reported_failure() ||
-       test_action(1) || test_action(-1)) return 1;
+       test_action(1) || test_action(-1) || test_bluetooth()) return 1;
     printf("PASS: %u checks, real FWD/turn/PID/IMU code, negative B overspeed, startup and production task; no hardware\n",checks);
     return 0;
 }

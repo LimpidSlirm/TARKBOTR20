@@ -46,10 +46,14 @@
 
 #include "ax_robot.h"
 
-static uint8_t uart4_rx_ok = 0; //接收成功标志
-static uint8_t uart4_rx_con = 0;       //接收计数器
-static uint8_t uart4_rx_checksum;    //帧头部分校验和
-static uint8_t uart4_rx_buf[40];     //接收缓冲，数据内容小于等于32Byte
+static volatile uint8_t uart4_rx_ok;
+static uint8_t uart4_rx_con;
+static uint8_t uart4_rx_checksum;
+static uint8_t uart4_rx_buf[AX_UART4_RX_DATA_MAX + 4u];
+static uint8_t uart4_rx_ready[AX_UART4_RX_DATA_MAX];
+volatile uint32_t ax_bluetooth_rx_bytes;
+volatile uint32_t ax_bluetooth_rx_frames;
+volatile uint8_t ax_bluetooth_last_byte;
 static uint8_t uart4_tx_buf[40];     //发送缓冲
 
 /**
@@ -59,7 +63,13 @@ static uint8_t uart4_tx_buf[40];     //发送缓冲
   */
 void AX_UART4_Init(uint32_t baud)
 {
-
+    uart4_rx_ok = uart4_rx_con = 0u;
+    ax_bluetooth_rx_bytes = ax_bluetooth_rx_frames = 0u;
+    ax_bluetooth_last_byte = 0u;
+#if AX_BLUETOOTH_USE_USART2
+    /* Compatibility API: current expansion board is physically on USART2. */
+    AX_UART2_Init(baud);
+#else
 	GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef  NVIC_InitStructure;
@@ -102,6 +112,7 @@ void AX_UART4_Init(uint32_t baud)
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority =1;		//子优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器	
+#endif
 	
 }
 
@@ -112,86 +123,43 @@ void AX_UART4_Init(uint32_t baud)
   */
 void UART4_IRQHandler(void)
 {
-	uint8_t Res;
-	
-	if(USART_GetITStatus(UART4, USART_IT_RXNE) != RESET)  //接收中断
-	{
-		Res =USART_ReceiveData(UART4);	
-		
-		if(uart4_rx_con < 3)    //==接收帧头 + 长度
-		{
-			if(uart4_rx_con == 0)  //接收帧头1 0xAA
-			{
-				if(Res == 0xAA)
-				{
-					uart4_rx_buf[0] = Res;
-					uart4_rx_con = 1;					
-				}
-				else
-				{
-					
-				}
-			}else if(uart4_rx_con == 1) //接收帧头2 0x55
-			{
-				if(Res == 0x55)
-				{
-					uart4_rx_buf[1] = Res;
-					uart4_rx_con = 2;
-				}
-				else
-				{
-					uart4_rx_con = 0;						
-				}				
-			}
-			else  //接收数据长度
-			{
-				uart4_rx_buf[2] = Res;
-				uart4_rx_con = 3;
-				uart4_rx_checksum = (0xAA+0x55) + Res;	//计算校验和
-			}
-		}
-		else    //==接收数据
-		{
-			if(uart4_rx_con < (uart4_rx_buf[2]-1) )
-			{
-				uart4_rx_buf[uart4_rx_con] = Res;
-				uart4_rx_con++;
-				uart4_rx_checksum = uart4_rx_checksum + Res;					
-			}
-			else    //判断最后1位
-			{
-				//接收完成，恢复初始状态
-				uart4_rx_con = 0;	
-				
-				//数据校验
-				if( Res == uart4_rx_checksum )  //校验正确
-				{	
-
-					//数据接收OK
-					uart4_rx_ok = 1;	
-					
-					//手机APP完成蓝牙连接
-					if(uart4_rx_buf[3] == ID_BLERX_CM)
-					{
-						if(uart4_rx_buf[4] == 0x55)
-						{
-							//切换到手机APP控制
-							ax_control_mode = CTL_APP;
-							
-							//执行蜂鸣器鸣叫提示
-							ax_beep_ring = BEEP_SHORT;
-						}
-					}
-					
-					//printf("ID = %d \r\n",uart4_rx_buf[4],uart4_rx_buf[4],uart4_rx_buf[4]);
-				}
-			}
-		}
-		
-    USART_ITConfig(UART4, USART_IT_RXNE, ENABLE);
-	} 
+    if (USART_GetITStatus(UART4, USART_IT_RXNE) == RESET) return;
+    AX_BLUETOOTH_ReceiveByte((uint8_t)USART_ReceiveData(UART4));
 }
 
+void AX_BLUETOOTH_ReceiveByte(uint8_t byte)
+{
+    uint8_t i, count;
+    ++ax_bluetooth_rx_bytes;
+    ax_bluetooth_last_byte = byte;
+    if (uart4_rx_con == 0u) {
+        if (byte == 0xAAu) uart4_rx_con = 1u;
+    } else if (uart4_rx_con == 1u) {
+        if (byte == 0x55u) uart4_rx_con = 2u;
+        else uart4_rx_con = byte == 0xAAu ? 1u : 0u;
+    } else if (uart4_rx_con == 2u) {
+        /* Bound both the ISR buffer and the caller's 16-byte buffer. */
+        if (byte < 5u || byte > sizeof(uart4_rx_buf)) {
+            uart4_rx_con = 0u;
+        } else {
+            uart4_rx_buf[2] = byte;
+            uart4_rx_checksum = (uint8_t)(0xAAu + 0x55u + byte);
+            uart4_rx_con = 3u;
+        }
+    } else if (uart4_rx_con < uart4_rx_buf[2] - 1u) {
+        uart4_rx_buf[uart4_rx_con++] = byte;
+        uart4_rx_checksum = (uint8_t)(uart4_rx_checksum + byte);
+    } else {
+        uart4_rx_con = 0u;
+        if (byte == uart4_rx_checksum && uart4_rx_ok == 0u) {
+            ++ax_bluetooth_rx_frames;
+            count = uart4_rx_buf[2] - 4u;
+            for (i = 0u; i < count; ++i) uart4_rx_ready[i] = uart4_rx_buf[3u + i];
+            /* Publish only a complete frame; never overwrite an unread handshake. */
+            uart4_rx_ok = count;
+        }
+    }
+}
 
 /**
   * @简  述  获取接收的数据
@@ -200,26 +168,23 @@ void UART4_IRQHandler(void)
   */
 uint8_t AX_UART4_GetData(uint8_t *pbuf)
 {
-	uint8_t cnt,i;
-	
-	if(uart4_rx_ok != 0)
-	{
-		cnt = uart4_rx_buf[2]-4;
-		
-		for(i=0; i<cnt; i++)
-		{
-			*(pbuf+i) = uart4_rx_buf[3+i];
-		}
-		
-		uart4_rx_ok = 0;
-		return cnt;
-	}
-	else
-	{
-		return 0;
-	}	
+    uint8_t count, i;
+    /* Mask this IRQ explicitly: its priority is above the RTOS critical mask. */
+#if AX_BLUETOOTH_USE_USART2
+    NVIC_DisableIRQ(USART2_IRQn);
+#else
+    NVIC_DisableIRQ(UART4_IRQn);
+#endif
+    count = uart4_rx_ok;
+    for (i = 0u; i < count; ++i) pbuf[i] = uart4_rx_ready[i];
+    uart4_rx_ok = 0u;
+#if AX_BLUETOOTH_USE_USART2
+    NVIC_EnableIRQ(USART2_IRQn);
+#else
+    NVIC_EnableIRQ(UART4_IRQn);
+#endif
+    return count;
 }
-
 /**
   * @简  述  UART 发送数据（X-Protocol协议）
   * @参  数  *pbuf：发送数据指针

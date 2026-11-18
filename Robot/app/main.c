@@ -138,42 +138,42 @@ void Key_Motion_Step(void)
 //任务句柄
 //启动任务
 #define START_TASK_PRIO		1
-#define START_STK_SIZE 		256
+#define START_STK_SIZE 		256  
 TaskHandle_t StartTask_Handler = NULL;
 void Start_Task(void *pvParameters);
 
 //机器人运行主任务
-#define ROBOT_TASK_PRIO		4
-#define ROBOT_STK_SIZE 		512
+#define ROBOT_TASK_PRIO		4     
+#define ROBOT_STK_SIZE 		512 
 TaskHandle_t Robot_Task_Handle = NULL;
 void Robot_Task(void *pvParameters);
 
 //按键处理任务
-#define KEY_TASK_PRIO		3
+#define KEY_TASK_PRIO		3     
 #define KEY_STK_SIZE 		128   
 TaskHandle_t Key_Task_Handle = NULL;
 void Key_Task(void *pvParameters);
 
 //RGB灯效任务
-#define LIGHT_TASK_PRIO		1
+#define LIGHT_TASK_PRIO		1     
 #define LIGHT_STK_SIZE 		128   
 TaskHandle_t Light_Task_Handle = NULL;       
 void Light_Task(void *pvParameters);
 
 //OLED显示任务
-#define DISP_TASK_PRIO		1
+#define DISP_TASK_PRIO		1     
 #define DISP_STK_SIZE 		128   
 TaskHandle_t Disp_Task_Handle = NULL;
 void Disp_Task(void *pvParameters);
 
 //琐事管理任务
-#define TRIVIA_TASK_PRIO		2
+#define TRIVIA_TASK_PRIO		2     
 #define TRIVIA_STK_SIZE 		128   
 TaskHandle_t Trivia_Task_Handle = NULL;
 void Trivia_Task(void *pvParameters);
 
 //PS2数据获取任务
-#define PS2_TASK_PRIO		2
+#define PS2_TASK_PRIO		2     
 #define PS2_STK_SIZE 		128   
 TaskHandle_t Ps2_Task_Handle = NULL;
 void Ps2_Task(void *pvParameters);
@@ -242,15 +242,14 @@ int main(void)
 	AX_UART1_Init(230400);
 	
 	//TTL串口初始化
+#if !APP_BLUETOOTH_ENABLE || !AX_BLUETOOTH_USE_USART2
 	AX_UART2_Init(230400);
+#endif
 	
 	//USB通信端口初始化
 	AX_UART3_Init(230400);
 	
-	//蓝牙串口初始化
-#if !APP_KEY_TURN_TEST
-	AX_UART4_Init(115200);
-#endif
+	/* Bluetooth starts after startup calibration, before the control task. */
 	
 	//SBUS航模遥控器串口初始化
 #if !APP_KEY_TURN_TEST
@@ -328,7 +327,7 @@ void Start_Task(void *pvParameters)
 	
 	//陀螺仪校准变量
 	int16_t gyro_data[3] = {0};
-    int32_t gyro_sum[3] = {0};
+    int32_t gyro_sum[3] = {0}; 
 	
 	/******机器人启动流程************************************************/
 	
@@ -393,13 +392,13 @@ void Start_Task(void *pvParameters)
 		
 		gyro_sum[0] += gyro_data[0];
 		gyro_sum[1] += gyro_data[1];
-		gyro_sum[2] += gyro_data[2];
+		gyro_sum[2] += gyro_data[2]; 		
 	}
 	
 	//计算平均偏差值
 	ax_imu_gyro_offset[0] = AX_StartupGyroOffset(gyro_sum[0]);
 	ax_imu_gyro_offset[1] = AX_StartupGyroOffset(gyro_sum[1]);
-	ax_imu_gyro_offset[2] = AX_StartupGyroOffset(gyro_sum[2]);
+	ax_imu_gyro_offset[2] = AX_StartupGyroOffset(gyro_sum[2]);	
 	
 
 	//开机等待，展示等待灯效（树莓派等待35S，其它等待3S）
@@ -463,6 +462,9 @@ void Start_Task(void *pvParameters)
     AX_ROBOT_Stop();
 #if APP_KEY_TURN_TEST
     Key_Motion_Init();
+#endif
+#if APP_BLUETOOTH_ENABLE
+    AX_UART4_Init(115200);
 #endif
     if (!ax_motion_fault && AX_MPU6050_IsReady()) ax_robot_move_enable = 1u;
 
