@@ -1,24 +1,24 @@
 /**			                                                    
-		   ____                    _____ _______ _____       XTARK@å¡”å…‹åˆ›æ–°
+		   ____                    _____ _______ _____       XTARK@Ëş¿Ë´´ĞÂ
 		  / __ \                  / ____|__   __|  __ \ 
 		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
 		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
 		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
 		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
 				| |                                     
-				|_|                OpenCTR   æœºå™¨äººæ§åˆ¶å™¨
+				|_|                OpenCTR   »úÆ÷ÈË¿ØÖÆÆ÷
 									 
   ****************************************************************************** 
   *           
-  * ç‰ˆæƒæ‰€æœ‰ï¼š XTARK@å¡”å…‹åˆ›æ–°  ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶
-  * å…¬å¸ç½‘ç«™ï¼š www.xtark.cn   www.tarkbot.com
-  * æ·˜å®åº—é“ºï¼š https://xtark.taobao.com  
-  * å¡”å…‹å¾®ä¿¡ï¼š å¡”å…‹åˆ›æ–°ï¼ˆå…³æ³¨å…¬ä¼—å·ï¼Œè·å–æœ€æ–°æ›´æ–°èµ„è®¯ï¼‰
+  * °æÈ¨ËùÓĞ£º XTARK@Ëş¿Ë´´ĞÂ  °æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿
+  * ¹«Ë¾ÍøÕ¾£º www.xtark.cn   www.tarkbot.com
+  * ÌÔ±¦µêÆÌ£º https://xtark.taobao.com  
+  * Ëş¿ËÎ¢ĞÅ£º Ëş¿Ë´´ĞÂ£¨¹Ø×¢¹«ÖÚºÅ£¬»ñÈ¡×îĞÂ¸üĞÂ×ÊÑ¶£©
   *      
   ******************************************************************************
-  * @ä½œ  è€…  Musk Han@XTARK
-  * @ç‰ˆ  æœ¬  V1.0
-  * @å†…  å®¹  OLEDæ˜¾ç¤ºé©±åŠ¨ç¨‹åº
+  * @×÷  Õß  Musk Han@XTARK
+  * @°æ  ±¾  V1.0
+  * @ÄÚ  Èİ  OLEDÏÔÊ¾Çı¶¯³ÌĞò
   *
   ******************************************************************************
   */
@@ -33,23 +33,23 @@
 #include "ax_delay.h"
 #include "ax_sys.h"
 
-/***  OLEDæ“ä½œå‡½æ•° **********/
-void AX_OLED_Init(void);    //OLEDåˆå§‹åŒ–
-void AX_OLED_ClearScreen(void);    //OLEDæ¸…é™¤å±å¹•
+/***  OLED²Ù×÷º¯Êı **********/
+void AX_OLED_Init(void);    //OLED³õÊ¼»¯
+void AX_OLED_ClearScreen(void);    //OLEDÇå³ıÆÁÄ»
 
-void AX_OLED_DispChar(uint8_t x, uint8_t y, uint8_t ch, uint8_t mode);    // OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºä¸€ä¸ªASCIIå­—ç¬¦ï¼ˆ6X8ï¼‰
-void AX_OLED_DispStr(uint8_t x, uint8_t y, uint8_t *ch, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºASCIIå­—ç¬¦ä¸²ï¼ˆ6X8ï¼‰
-void AX_OLED_DispNum(uint8_t x, uint8_t y, uint8_t num, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºä¸€ä¸ªæ•°å­—ï¼ˆ6X8ï¼‰
-void AX_OLED_DispValue(uint8_t x, uint8_t y, int32_t value, uint8_t inte, uint8_t deci, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºæ•°å€¼
+void AX_OLED_DispChar(uint8_t x, uint8_t y, uint8_t ch, uint8_t mode);    // OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾Ò»¸öASCII×Ö·û£¨6X8£©
+void AX_OLED_DispStr(uint8_t x, uint8_t y, uint8_t *ch, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾ASCII×Ö·û´®£¨6X8£©
+void AX_OLED_DispNum(uint8_t x, uint8_t y, uint8_t num, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾Ò»¸öÊı×Ö£¨6X8£©
+void AX_OLED_DispValue(uint8_t x, uint8_t y, int32_t value, uint8_t inte, uint8_t deci, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾ÊıÖµ
 
-void AX_OLED_Disp16Char(uint8_t x, uint8_t y, uint8_t ch, uint8_t mode);    // OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºä¸€ä¸ªASCIIå­—ç¬¦ï¼ˆ8X16ï¼‰
-void AX_OLED_Disp16Str(uint8_t x, uint8_t y, uint8_t *ch, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºASCIIå­—ç¬¦ä¸²ï¼ˆ8X16ï¼‰
-void AX_OLED_Disp16Num(uint8_t x, uint8_t y, uint8_t num, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºä¸€ä¸ªæ•°å­—ï¼ˆ8X16ï¼‰
-void AX_OLED_Disp16Value(uint8_t x, uint8_t y, int32_t value, uint8_t inte, uint8_t deci, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºæ•°å€¼
+void AX_OLED_Disp16Char(uint8_t x, uint8_t y, uint8_t ch, uint8_t mode);    // OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾Ò»¸öASCII×Ö·û£¨8X16£©
+void AX_OLED_Disp16Str(uint8_t x, uint8_t y, uint8_t *ch, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾ASCII×Ö·û´®£¨8X16£©
+void AX_OLED_Disp16Num(uint8_t x, uint8_t y, uint8_t num, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾Ò»¸öÊı×Ö£¨8X16£©
+void AX_OLED_Disp16Value(uint8_t x, uint8_t y, int32_t value, uint8_t inte, uint8_t deci, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾ÊıÖµ
 
-void AX_OLED_DispPicture(uint8_t x, uint8_t y, uint8_t xsize, uint8_t ysize, const uint8_t *pbuf, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºä¸€ä¸ªæŒ‡å®šå°ºå¯¸ç…§ç‰‡
-void AX_OLED_DispChinese(uint8_t x, uint8_t y, const uint8_t *pbuf, uint8_t mode);    //OLEDæŒ‡å®šä½ç½®æ˜¾ç¤ºä¸€ä¸ªæ±‰å­—ï¼ˆ16X16ï¼‰
+void AX_OLED_DispPicture(uint8_t x, uint8_t y, uint8_t xsize, uint8_t ysize, const uint8_t *pbuf, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾Ò»¸öÖ¸¶¨³ß´çÕÕÆ¬
+void AX_OLED_DispChinese(uint8_t x, uint8_t y, const uint8_t *pbuf, uint8_t mode);    //OLEDÖ¸¶¨Î»ÖÃÏÔÊ¾Ò»¸öºº×Ö£¨16X16£©
 
 #endif
 
-/******************* (C) ç‰ˆæƒ 2023 XTARK **************************************/
+/******************* (C) °æÈ¨ 2023 XTARK **************************************/

@@ -1,0 +1,8 @@
+.deps/
+.venv/
+.venv-old/
+.deps-old/
+.build/
+output/
+__pycache__/
+*.pyc

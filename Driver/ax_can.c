@@ -115,6 +115,10 @@ void AX_CAN_Init(void)
   */
 void CAN1_RX0_IRQHandler(void)
 {
+#if APP_KEY_TURN_TEST
+    CAN_Receive(CAN1,CAN_FIFO0,&RxMessage);
+#else
+
 
 	//接收FIFO0中的数据
     CAN_Receive(CAN1,CAN_FIFO0, &RxMessage); 
@@ -140,6 +144,8 @@ void CAN1_RX0_IRQHandler(void)
 //	RxMessage.Data[0],RxMessage.Data[1],RxMessage.Data[2],RxMessage.Data[3],
 //	RxMessage.Data[4],RxMessage.Data[5],RxMessage.Data[6],RxMessage.Data[7]);		
 	
+
+#endif
 } 
 
 

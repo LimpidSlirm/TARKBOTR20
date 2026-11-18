@@ -1,27 +1,27 @@
 /**			                                                    
-		   ____                    _____ _______ _____       XTARK@å¡”å…‹åˆ›æ–°
+		   ____                    _____ _______ _____       XTARK@Ëş¿Ë´´ĞÂ
 		  / __ \                  / ____|__   __|  __ \ 
 		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
 		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
 		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
 		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
 				| |                                     
-				|_|                OpenCTR   æœºå™¨äººæ§åˆ¶å™¨
+				|_|                OpenCTR   »úÆ÷ÈË¿ØÖÆÆ÷
 									 
   ****************************************************************************** 
   *           
-  * ç‰ˆæƒæ‰€æœ‰ï¼š XTARK@å¡”å…‹åˆ›æ–°  ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶
-  * å…¬å¸ç½‘ç«™ï¼š www.xtark.cn   www.tarkbot.com
-  * æ·˜å®åº—é“ºï¼š https://xtark.taobao.com  
-  * å¡”å…‹å¾®ä¿¡ï¼š å¡”å…‹åˆ›æ–°ï¼ˆå…³æ³¨å…¬ä¼—å·ï¼Œè·å–æœ€æ–°æ›´æ–°èµ„è®¯ï¼‰
+  * °æÈ¨ËùÓĞ£º XTARK@Ëş¿Ë´´ĞÂ  °æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿
+  * ¹«Ë¾ÍøÕ¾£º www.xtark.cn   www.tarkbot.com
+  * ÌÔ±¦µêÆÌ£º https://xtark.taobao.com  
+  * Ëş¿ËÎ¢ĞÅ£º Ëş¿Ë´´ĞÂ£¨¹Ø×¢¹«ÖÚºÅ£¬»ñÈ¡×îĞÂ¸üĞÂ×ÊÑ¶£©
   *      
   ******************************************************************************
-  * @ä½œ  è€…  Musk Han@XTARK
-  * @ç‰ˆ  æœ¬  V1.0
-  * @å†…  å®¹  WS2812 RGBç¯å¸¦æ§åˆ¶ 
+  * @×÷  Õß  Musk Han@XTARK
+  * @°æ  ±¾  V1.0
+  * @ÄÚ  Èİ  WS2812 RGBµÆ´ø¿ØÖÆ 
   *
   ******************************************************************************
-  * @è¯´  æ˜
+  * @Ëµ  Ã÷
   *
   * 
   ******************************************************************************
@@ -30,24 +30,24 @@
 #include "ax_rgb.h"
 
 
-// ç¡¬ä»¶spiæ¨¡æ‹Ÿws2812æ—¶åºï¼ˆç”¨spiçš„3ä½æ•°æ®æ¨¡æ‹Ÿws2812çš„ä¸€ä½æ•°æ®ï¼‰
-// è¦æ±‚SPIçš„é€šä¿¡é¢‘ç‡ä¸º2.25Mï¼Œä¼ è¾“ä¸€ä½æ•°æ®çš„æ—¶é—´çº¦ä¸º444çº³ç§’ï¼ˆnsï¼‰
+// Ó²¼şspiÄ£Äâws2812Ê±Ğò£¨ÓÃspiµÄ3Î»Êı¾İÄ£Äâws2812µÄÒ»Î»Êı¾İ£©
+// ÒªÇóSPIµÄÍ¨ĞÅÆµÂÊÎª2.25M£¬´«ÊäÒ»Î»Êı¾İµÄÊ±¼äÔ¼Îª444ÄÉÃë£¨ns£©
 //  __
-// |  |_|   0b11111000  æ•°å­—1
+// |  |_|   0b11111000  Êı×Ö1
 //  _   
-// | |__|   0b11000000  æ•°å­—0
+// | |__|   0b11000000  Êı×Ö0
 
 #define TIM_ZERO          0xC0  
 #define TIM_ONE           0xF8
 
-//RGBå½©ç¯æ˜¾ç¤ºæ•°ç»„
-uint8_t RGB_BYTE_Buffer[PIXEL_NUM*24+2] = {0};  //å¤´éƒ¨å’Œå°¾éƒ¨å¢åŠ 0ï¼Œæ¶ˆé™¤æ˜¾ç¤ºé”™è¯¯
+//RGB²ÊµÆÏÔÊ¾Êı×é
+uint8_t RGB_BYTE_Buffer[PIXEL_NUM*24+2] = {0};  //Í·²¿ºÍÎ²²¿Ôö¼Ó0£¬Ïû³ıÏÔÊ¾´íÎó
 
 
 /**
-  * @ç®€  è¿°  RGBå½©ç¯åˆå§‹åŒ–
-  * @å‚  æ•°  æ— 
-  * @è¿”å›å€¼  æ— 
+  * @¼ò  Êö  RGB²ÊµÆ³õÊ¼»¯
+  * @²Î  Êı  ÎŞ
+  * @·µ»ØÖµ  ÎŞ
   */
 void AX_RGB_Init(void)
 {
@@ -56,14 +56,14 @@ void AX_RGB_Init(void)
 	SPI_InitTypeDef SPI_InitStructure;
 	DMA_InitTypeDef  DMA_InitStructure;
 	
-	//æ—¶é’Ÿé…ç½® 
+	//Ê±ÖÓÅäÖÃ 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE); 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);   
 	
-	//å¼•è„šå¤ç”¨æ˜ å°„
+	//Òı½Å¸´ÓÃÓ³Éä
 	GPIO_PinAFConfig(GPIOC,GPIO_PinSource12,GPIO_AF_SPI3);
 
-	//GPIOç«¯å£é…ç½®
+	//GPIO¶Ë¿ÚÅäÖÃ
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	
@@ -71,81 +71,81 @@ void AX_RGB_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; 
 	GPIO_Init(GPIOC,&GPIO_InitStructure); 
 	
-	//é…ç½® SPI æ¥å£
-	SPI_InitStructure.SPI_Direction = SPI_Direction_1Line_Tx;    //è®¾ç½®SPIå•å‘æˆ–è€…åŒå‘çš„æ•°æ®æ¨¡å¼:SPIè®¾ç½®ä¸ºåŒçº¿åŒå‘å…¨åŒå·¥
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		                  //è®¾ç½®SPIå·¥ä½œæ¨¡å¼:è®¾ç½®ä¸ºä¸»SPI
-	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;		              //è®¾ç½®SPIçš„æ•°æ®å¤§å°:SPIå‘é€æ¥æ”¶8ä½å¸§ç»“æ„
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;		                      //é€‰æ‹©äº†ä¸²è¡Œæ—¶é’Ÿçš„ç¨³æ€:æ—¶é’Ÿæ‚¬ç©ºé«˜
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	                      //æ•°æ®æ•è·äºç¬¬äºŒä¸ªæ—¶é’Ÿæ²¿
-	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		                      //NSSä¿¡å·ç”±ç¡¬ä»¶ï¼ˆNSSç®¡è„šï¼‰è¿˜æ˜¯è½¯ä»¶ï¼ˆä½¿ç”¨SSIä½ï¼‰ç®¡ç†:å†…éƒ¨NSSä¿¡å·æœ‰SSIä½æ§åˆ¶
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;    //å®šä¹‰æ³¢ç‰¹ç‡é¢„åˆ†é¢‘çš„å€¼:æ³¢ç‰¹ç‡é¢„åˆ†é¢‘å€¼ä¸º256  //40M/8=5M
-	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	                  //æŒ‡å®šæ•°æ®ä¼ è¾“ä»MSBä½è¿˜æ˜¯LSBä½å¼€å§‹:æ•°æ®ä¼ è¾“ä»MSBä½å¼€å§‹
-	SPI_InitStructure.SPI_CRCPolynomial = 7;	                          //CRCå€¼è®¡ç®—çš„å¤šé¡¹å¼
+	//ÅäÖÃ SPI ½Ó¿Ú
+	SPI_InitStructure.SPI_Direction = SPI_Direction_1Line_Tx;    //ÉèÖÃSPIµ¥Ïò»òÕßË«ÏòµÄÊı¾İÄ£Ê½:SPIÉèÖÃÎªË«ÏßË«ÏòÈ«Ë«¹¤
+	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		                  //ÉèÖÃSPI¹¤×÷Ä£Ê½:ÉèÖÃÎªÖ÷SPI
+	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;		              //ÉèÖÃSPIµÄÊı¾İ´óĞ¡:SPI·¢ËÍ½ÓÊÕ8Î»Ö¡½á¹¹
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;		                      //Ñ¡ÔñÁË´®ĞĞÊ±ÖÓµÄÎÈÌ¬:Ê±ÖÓĞü¿Õ¸ß
+	SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	                      //Êı¾İ²¶»ñÓÚµÚ¶ş¸öÊ±ÖÓÑØ
+	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		                      //NSSĞÅºÅÓÉÓ²¼ş£¨NSS¹Ü½Å£©»¹ÊÇÈí¼ş£¨Ê¹ÓÃSSIÎ»£©¹ÜÀí:ÄÚ²¿NSSĞÅºÅÓĞSSIÎ»¿ØÖÆ
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;    //¶¨Òå²¨ÌØÂÊÔ¤·ÖÆµµÄÖµ:²¨ÌØÂÊÔ¤·ÖÆµÖµÎª256  //40M/8=5M
+	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	                  //Ö¸¶¨Êı¾İ´«Êä´ÓMSBÎ»»¹ÊÇLSBÎ»¿ªÊ¼:Êı¾İ´«Êä´ÓMSBÎ»¿ªÊ¼
+	SPI_InitStructure.SPI_CRCPolynomial = 7;	                          //CRCÖµ¼ÆËãµÄ¶àÏîÊ½
 	SPI_Init(SPI3, &SPI_InitStructure);
 
-	//ä½¿èƒ½SPIå¤–è®¾
+	//Ê¹ÄÜSPIÍâÉè
 	SPI_Cmd(SPI3, ENABLE);//
 	SPI_CalculateCRC(SPI3, DISABLE);
 	SPI_I2S_DMACmd(SPI3, SPI_I2S_DMAReq_Tx, ENABLE);
 
-	//DMAé…ç½®
+	//DMAÅäÖÃ
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1,ENABLE);
 	DMA_DeInit(DMA1_Stream5);
 	
-	//ç­‰å¾…DMAå¯é…ç½® 
+	//µÈ´ıDMA¿ÉÅäÖÃ 
 	while (DMA_GetCmdStatus(DMA1_Stream5) != DISABLE){}
 
 
-	//é…ç½® DMA Stream
-	DMA_InitStructure.DMA_Channel = DMA_Channel_0;  //é€šé“é€‰æ‹©
-	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&SPI3->DR);//DMAå¤–è®¾åœ°å€
-	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)RGB_BYTE_Buffer;//DMA å­˜å‚¨å™¨0åœ°å€
-	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;//å­˜å‚¨å™¨åˆ°å¤–è®¾æ¨¡å¼
-	DMA_InitStructure.DMA_BufferSize = 0;//æ•°æ®ä¼ è¾“é‡ 
-	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//å¤–è®¾éå¢é‡æ¨¡å¼
-	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;//å­˜å‚¨å™¨å¢é‡æ¨¡å¼
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;//å¤–è®¾æ•°æ®é•¿åº¦:8ä½
-	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;//å­˜å‚¨å™¨æ•°æ®é•¿åº¦:8ä½
-	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;// ä½¿ç”¨æ™®é€šæ¨¡å¼ 
-	DMA_InitStructure.DMA_Priority = DMA_Priority_High;//ä¸­ç­‰ä¼˜å…ˆçº§
+	//ÅäÖÃ DMA Stream
+	DMA_InitStructure.DMA_Channel = DMA_Channel_0;  //Í¨µÀÑ¡Ôñ
+	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)(&SPI3->DR);//DMAÍâÉèµØÖ·
+	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)RGB_BYTE_Buffer;//DMA ´æ´¢Æ÷0µØÖ·
+	DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;//´æ´¢Æ÷µ½ÍâÉèÄ£Ê½
+	DMA_InitStructure.DMA_BufferSize = 0;//Êı¾İ´«ÊäÁ¿ 
+	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;//ÍâÉè·ÇÔöÁ¿Ä£Ê½
+	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;//´æ´¢Æ÷ÔöÁ¿Ä£Ê½
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;//ÍâÉèÊı¾İ³¤¶È:8Î»
+	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;//´æ´¢Æ÷Êı¾İ³¤¶È:8Î»
+	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;// Ê¹ÓÃÆÕÍ¨Ä£Ê½ 
+	DMA_InitStructure.DMA_Priority = DMA_Priority_High;//ÖĞµÈÓÅÏÈ¼¶
 	
-	DMA_Init(DMA1_Stream5, &DMA_InitStructure);  //åˆå§‹åŒ–DMA Stream	
+	DMA_Init(DMA1_Stream5, &DMA_InitStructure);  //³õÊ¼»¯DMA Stream	
 
 }
 
 /**
-  * @ç®€  è¿°  RGBå½©ç¯æ›´æ–°æ•°æ®
-  * @å‚  æ•°  æ— 
-  * @è¿”å›å€¼  æ— 
+  * @¼ò  Êö  RGB²ÊµÆ¸üĞÂÊı¾İ
+  * @²Î  Êı  ÎŞ
+  * @·µ»ØÖµ  ÎŞ
   */
 void RGB_Update(void)
 {
 	
-	//æ•°æ®æ˜¾ç¤º
+	//Êı¾İÏÔÊ¾
 	DMA_SetCurrDataCounter(DMA1_Stream5, PIXEL_NUM*24+2 );     // load number of bytes to be transferred
 	
 	DMA_Cmd(DMA1_Stream5, ENABLE);                             // enable DMA channel 3
 
-	while (!DMA_GetFlagStatus( DMA1_Stream5,DMA_FLAG_TCIF5));         // ç­‰å¾…ä¼ è¾“å®Œæˆ
+	while (!DMA_GetFlagStatus( DMA1_Stream5,DMA_FLAG_TCIF5));         // µÈ´ı´«ÊäÍê³É
 
-	DMA_Cmd(DMA1_Stream5, DISABLE); // å…³é—­DMAé€šé“
+	DMA_Cmd(DMA1_Stream5, DISABLE); // ¹Ø±ÕDMAÍ¨µÀ
 
-	DMA_ClearFlag(DMA1_Stream5, DMA_FLAG_TCIF5);    // æ¸…é™¤DMAé€šé“çŠ¶æ€
+	DMA_ClearFlag(DMA1_Stream5, DMA_FLAG_TCIF5);    // Çå³ıDMAÍ¨µÀ×´Ì¬
 
 	
 }
 
 /**
-  * @ç®€  è¿°  WS2812Bè®¾ç½®æ¯ä¸ªç¯çš„é¢œè‰²
-  * @å‚  æ•°  uint32_t rgbï¼šç¯çš„é¢œè‰²
-  * @è¿”å›å€¼  æ— 
+  * @¼ò  Êö  WS2812BÉèÖÃÃ¿¸öµÆµÄÑÕÉ«
+  * @²Î  Êı  uint32_t rgb£ºµÆµÄÑÕÉ«
+  * @·µ»ØÖµ  ÎŞ
   */
 void AX_RGB_SetFullColor( uint8_t r, uint8_t g, uint8_t b)
 {
 	
 	uint16_t i,j;
 
-	//ç»™é¦–å°¾åŠ ä¸Š0é˜²æ­¢å¼€å§‹æ—¶å‘é€æ•°æ®é”™è¯¯å¯¼è‡´æ—¶åºé”™è¯¯
+	//¸øÊ×Î²¼ÓÉÏ0·ÀÖ¹¿ªÊ¼Ê±·¢ËÍÊı¾İ´íÎóµ¼ÖÂÊ±Ğò´íÎó
 	RGB_BYTE_Buffer[0]=0;                               
 	RGB_BYTE_Buffer[PIXEL_NUM*24 + 1]=0;	
 
@@ -164,22 +164,22 @@ void AX_RGB_SetFullColor( uint8_t r, uint8_t g, uint8_t b)
 		}		
 	} 
 
-	//RGBå½©ç¯æ›´æ–°æ•°æ®
+	//RGB²ÊµÆ¸üĞÂÊı¾İ
 	RGB_Update();
 }
 
 
 /**
-  * @ç®€  è¿°  WS2812Bè®¾ç½®æ¯ä¸ªç¯çš„é¢œè‰²
-  * @å‚  æ•°  uint8_t pixel[PIXEL_NUM][3] rgbåƒç´  åŠ¨æ€æ•°ç»„
-  * @è¿”å›å€¼  æ— 
+  * @¼ò  Êö  WS2812BÉèÖÃÃ¿¸öµÆµÄÑÕÉ«
+  * @²Î  Êı  uint8_t pixel[PIXEL_NUM][3] rgbÏñËØ ¶¯Ì¬Êı×é
+  * @·µ»ØÖµ  ÎŞ
   */
 void AX_RGB_SetPixelColor(uint8_t pixel[PIXEL_NUM][3])
 {
 	
 	uint8_t i,j;
 	
-	//ç»™é¦–å°¾åŠ ä¸Š0é˜²æ­¢å¼€å§‹æ—¶å‘é€æ•°æ®é”™è¯¯å¯¼è‡´æ—¶åºé”™è¯¯
+	//¸øÊ×Î²¼ÓÉÏ0·ÀÖ¹¿ªÊ¼Ê±·¢ËÍÊı¾İ´íÎóµ¼ÖÂÊ±Ğò´íÎó
     RGB_BYTE_Buffer[0]=0;                               
     RGB_BYTE_Buffer[PIXEL_NUM*24 + 1]=0;	
 	
@@ -193,21 +193,21 @@ void AX_RGB_SetPixelColor(uint8_t pixel[PIXEL_NUM][3])
 		}	
 	}
 	
-	//RGBå½©ç¯æ›´æ–°æ•°æ®
+	//RGB²ÊµÆ¸üĞÂÊı¾İ
     RGB_Update();
 }
 
 /**
-  * @ç®€  è¿°  WS2812Bè®¾ç½®æ¯ä¸ªç¯çš„é¢œè‰²
-  * @å‚  æ•°  uint8_t pixel[PIXEL_NUM][3] rgbåƒç´  é™æ€æ•°ç»„
-  * @è¿”å›å€¼  æ— 
+  * @¼ò  Êö  WS2812BÉèÖÃÃ¿¸öµÆµÄÑÕÉ«
+  * @²Î  Êı  uint8_t pixel[PIXEL_NUM][3] rgbÏñËØ ¾²Ì¬Êı×é
+  * @·µ»ØÖµ  ÎŞ
   */
 void AX_RGB_SetPixelColor1(const uint8_t pixel[PIXEL_NUM][3])
 {
 	
 	uint8_t i,j;
 	
-	//ç»™é¦–å°¾åŠ ä¸Š0é˜²æ­¢å¼€å§‹æ—¶å‘é€æ•°æ®é”™è¯¯å¯¼è‡´æ—¶åºé”™è¯¯
+	//¸øÊ×Î²¼ÓÉÏ0·ÀÖ¹¿ªÊ¼Ê±·¢ËÍÊı¾İ´íÎóµ¼ÖÂÊ±Ğò´íÎó
     RGB_BYTE_Buffer[0]=0;                               
     RGB_BYTE_Buffer[PIXEL_NUM*24 + 1]=0;	
 	
@@ -221,7 +221,7 @@ void AX_RGB_SetPixelColor1(const uint8_t pixel[PIXEL_NUM][3])
 		}	
 	}
 
-	//RGBå½©ç¯æ›´æ–°æ•°æ®
+	//RGB²ÊµÆ¸üĞÂÊı¾İ
     RGB_Update();
 	
 }
@@ -229,4 +229,4 @@ void AX_RGB_SetPixelColor1(const uint8_t pixel[PIXEL_NUM][3])
 
 
 
-/******************* (C) ç‰ˆæƒ 2023 XTARK **************************************/
+/******************* (C) °æÈ¨ 2023 XTARK **************************************/

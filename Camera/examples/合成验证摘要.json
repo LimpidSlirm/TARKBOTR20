@@ -1,0 +1,27 @@
+{
+  "source": "generated pixels and known synthetic geometry only",
+  "frames": 60,
+  "all_metric_valid": true,
+  "camera_opened": false,
+  "motor_commands_sent": false,
+  "opencv_version": "4.14.0",
+  "numpy_version": "2.3.5",
+  "unit_tests_passed": 21,
+  "scene_counts": {
+    "straight": 15,
+    "left": 15,
+    "right": 15,
+    "s": 15
+  },
+  "last_frame_curvature_range_inv_m": [
+    -0.8079985350086256,
+    0.7728253415486537
+  ],
+  "limitations": [
+    "No real map images available",
+    "No camera hardware test",
+    "No firmware or vehicle integration",
+    "Synthetic calibration cannot be used on a real camera"
+  ],
+  "verified_beijing": "2026-11-10T18:04:33+08:00"
+}

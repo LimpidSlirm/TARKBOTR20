@@ -46,9 +46,11 @@
 
 #include "ax_robot.h"
 
+#if !APP_KEY_TURN_TEST
 static uint8_t uart3_rx_con=0;       //接收计数器
 static uint8_t uart3_rx_checksum;    //帧头部分校验和
 static uint8_t uart3_rx_buf[40];     //接收缓冲，数据内容小于等于32Byte
+#endif
 static uint8_t uart3_tx_buf[40];     //发送缓冲
 
 /**
@@ -112,6 +114,10 @@ void AX_UART3_Init(uint32_t baud)
   */
 void USART3_IRQHandler(void)
 {
+#if APP_KEY_TURN_TEST
+    if (USART_GetITStatus(USART3,USART_IT_RXNE)!=RESET) (void)USART_ReceiveData(USART3);
+#else
+
 	uint8_t Res;
 	
 	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)  //接收中断
@@ -244,6 +250,8 @@ void USART3_IRQHandler(void)
 		
 		USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
 	} 
+
+#endif
 }
 
 /**

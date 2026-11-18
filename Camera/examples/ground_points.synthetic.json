@@ -1,0 +1,67 @@
+{
+  "calibration_id": "SYNTHETIC_DEMO_NOT_FOR_REAL_CAMERA",
+  "image_size": [
+    640,
+    480
+  ],
+  "input_is_undistorted": true,
+  "camera_matrix": null,
+  "synthetic": true,
+  "fit_image_points_px": [
+    [
+      80.0,
+      70.0
+    ],
+    [
+      560.0,
+      70.0
+    ],
+    [
+      560.0,
+      470.0
+    ],
+    [
+      80.0,
+      470.0
+    ]
+  ],
+  "fit_ground_points_m": [
+    [
+      1.4666666666666668,
+      0.8
+    ],
+    [
+      1.4666666666666668,
+      -0.8
+    ],
+    [
+      0.13333333333333333,
+      -0.8
+    ],
+    [
+      0.13333333333333333,
+      0.8
+    ]
+  ],
+  "validation_image_points_px": [
+    [
+      220.0,
+      180.0
+    ],
+    [
+      420.0,
+      360.0
+    ]
+  ],
+  "validation_ground_points_m": [
+    [
+      1.1,
+      0.3333333333333333
+    ],
+    [
+      0.5,
+      -0.3333333333333333
+    ]
+  ],
+  "max_validation_error_m": 0.005
+}

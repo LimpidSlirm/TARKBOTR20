@@ -27,6 +27,7 @@
 #include "ax_kinematics.h"
 #include "ax_robot.h"
 #include "ax_speed.h"
+#include "ax_encoder_extended.h"
 
 //根据机器人类型，选择编译机器人运动学处理函数
 
@@ -96,6 +97,18 @@ void AX_ROBOT_Kinematics(void)
 
 
 #if (ROBOT_TYPE == ROBOT_FWD)
+#if APP_KEY_TURN_TEST
+static uint8_t opposite_feedback_mask;
+
+static uint8_t opposite_feedback(const ROBOT_Wheel *wheel)
+{
+    const float minimum_target = 0.015f;
+    const float minimum_feedback = 0.025f;
+    return (wheel->TG > minimum_target && wheel->RT < -minimum_feedback) ||
+           (wheel->TG < -minimum_target && wheel->RT > minimum_feedback);
+}
+#endif
+
 /**
   * @简  述  机器人运动学处理-四轮差速
   * @参  数  无
@@ -103,20 +116,43 @@ void AX_ROBOT_Kinematics(void)
   */
 void AX_ROBOT_Kinematics(void)
 {
+    float peak, scale;
+
+    if (ax_motion_fault || !ax_robot_move_enable) { AX_ROBOT_Stop(); return; }
+
+    if (!(ax_control_dt_s>0.0f && ax_control_dt_s<=0.04001f)) {
+        AX_ROBOT_LatchFault(2u); return;
+    }
 	
-	//四轮差速由于轮胎摩擦力较大，采用60减速比电机，
-	//注意，60减速比电机转向与30减速比刚好反向
+	/* Competition P30: signs and encoder scale come from ax_chassis_config.h. */
 
 	//通过编码器获取车轮实时转速m/s
-	R_Wheel_A.RT = (float)-((int16_t)AX_ENCODER_A_GetCounter()*FWD_WHEEL_SCALE);
-	AX_ENCODER_A_SetCounter(0);
-	R_Wheel_B.RT = (float) ((int16_t)AX_ENCODER_B_GetCounter()*FWD_WHEEL_SCALE);
-	AX_ENCODER_B_SetCounter(0);		
-	R_Wheel_C.RT = (float)-((int16_t)AX_ENCODER_C_GetCounter()*FWD_WHEEL_SCALE);
-	AX_ENCODER_C_SetCounter(0);
-	R_Wheel_D.RT = (float) ((int16_t)AX_ENCODER_D_GetCounter()*FWD_WHEEL_SCALE);
-	AX_ENCODER_D_SetCounter(0);
-	
+	R_Wheel_A.RT = AX_FWD_ENCODER_SIGN_A * (double)AX_ENCODER_ReadDelta(0u) * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s);
+	R_Wheel_B.RT = AX_FWD_ENCODER_SIGN_B * (double)AX_ENCODER_ReadDelta(1u) * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s);
+	R_Wheel_C.RT = AX_FWD_ENCODER_SIGN_C * (double)AX_ENCODER_ReadDelta(2u) * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s);
+	R_Wheel_D.RT = AX_FWD_ENCODER_SIGN_D * (double)AX_ENCODER_ReadDelta(3u) * FWD_WHEEL_SCALE * (0.02f/ax_control_dt_s);
+
+    if (fabs(R_Wheel_A.RT)>AX_FWD_OVERSPEED_MPS || fabs(R_Wheel_B.RT)>AX_FWD_OVERSPEED_MPS ||
+        fabs(R_Wheel_C.RT)>AX_FWD_OVERSPEED_MPS || fabs(R_Wheel_D.RT)>AX_FWD_OVERSPEED_MPS) {
+        AX_ROBOT_LatchFault(3u); return;
+    }
+
+#if APP_KEY_TURN_TEST
+    /* Compare against the target that produced this encoder sample. */
+    {
+        uint8_t mask = (uint8_t)(opposite_feedback(&R_Wheel_A) |
+                        (opposite_feedback(&R_Wheel_B) << 1) |
+                        (opposite_feedback(&R_Wheel_C) << 2) |
+                        (opposite_feedback(&R_Wheel_D) << 3));
+        if (mask & opposite_feedback_mask) {
+            ax_feedback_fault_mask = mask & opposite_feedback_mask;
+            AX_ROBOT_LatchFault(9u);
+            return;
+        }
+        opposite_feedback_mask = mask;
+    }
+#endif
+
 	//调试输出轮子转速
 	//printf("@%f  %f   \r\n",R_Wheel_A.RT,R_Wheel_B.RT);
 	
@@ -145,6 +181,18 @@ void AX_ROBOT_Kinematics(void)
 	R_Wheel_D.TG = R_Vel.TG_FX + R_Vel.TG_FW*(FWD_WHEEL_BASE*FWD_WB_SCALE/2);
 	
 	
+    peak=(float)fabs(R_Wheel_A.TG);
+    if (fabs(R_Wheel_B.TG)>peak) peak=(float)fabs(R_Wheel_B.TG);
+    if (fabs(R_Wheel_C.TG)>peak) peak=(float)fabs(R_Wheel_C.TG);
+    if (fabs(R_Wheel_D.TG)>peak) peak=(float)fabs(R_Wheel_D.TG);
+    if (peak>AX_FWD_MAX_WHEEL_MPS) {
+        scale=AX_FWD_MAX_WHEEL_MPS/peak;
+        R_Wheel_A.TG*=scale; R_Wheel_B.TG*=scale;
+        R_Wheel_C.TG*=scale; R_Wheel_D.TG*=scale;
+        R_Vel.TG_FX*=scale; R_Vel.TG_FW*=scale;
+    }
+    if (R_Vel.TG_IX==0 && R_Vel.TG_IW==0) { AX_ROBOT_Stop(); return; }
+
 	//利用PID算法计算电机PWM值
 	R_Wheel_A.PWM = AX_SPEED_PidCtlA(R_Wheel_A.TG, R_Wheel_A.RT);   
 	R_Wheel_B.PWM = AX_SPEED_PidCtlB(R_Wheel_B.TG, R_Wheel_B.RT);  
@@ -160,10 +208,10 @@ void AX_ROBOT_Kinematics(void)
 	}
 	
 	//设置电机PWM值
-	AX_MOTOR_A_SetSpeed(  R_Wheel_A.PWM);
-	AX_MOTOR_B_SetSpeed(  R_Wheel_B.PWM);  
-	AX_MOTOR_C_SetSpeed( -R_Wheel_C.PWM);
-	AX_MOTOR_D_SetSpeed( -R_Wheel_D.PWM); 
+	AX_MOTOR_A_SetSpeed(AX_FWD_MOTOR_SIGN_A * R_Wheel_A.PWM);
+	AX_MOTOR_B_SetSpeed(AX_FWD_MOTOR_SIGN_B * R_Wheel_B.PWM);
+	AX_MOTOR_C_SetSpeed(AX_FWD_MOTOR_SIGN_C * R_Wheel_C.PWM);
+	AX_MOTOR_D_SetSpeed(AX_FWD_MOTOR_SIGN_D * R_Wheel_D.PWM);
 	
 	//输出调试信息
 	//printf("@%f  %f  %f %f  \r\n",R_Wheel_A.RT,R_Wheel_B.RT, R_Wheel_C.RT ,R_Wheel_D.RT);
@@ -445,13 +493,22 @@ void AX_ROBOT_Kinematics(void)
   */
 void AX_ROBOT_Stop(void)
 {
-	
-	//设置电机PWM值
-	AX_MOTOR_A_SetSpeed(0);
-	AX_MOTOR_B_SetSpeed(0);  
-	AX_MOTOR_C_SetSpeed(0);
-	AX_MOTOR_D_SetSpeed(0);  
-	
+#if APP_KEY_TURN_TEST && (ROBOT_TYPE == ROBOT_FWD)
+    opposite_feedback_mask = 0u;
+#endif
+    AX_MOTOR_A_SetSpeed(0); AX_MOTOR_B_SetSpeed(0);
+    AX_MOTOR_C_SetSpeed(0); AX_MOTOR_D_SetSpeed(0);
+    AX_SPEED_Reset();
+    R_Vel.TG_IX=R_Vel.TG_IY=R_Vel.TG_IW=0;
+    R_Vel.TG_FX=R_Vel.TG_FY=R_Vel.TG_FW=0.0f;
+    R_Wheel_A.TG=R_Wheel_B.TG=R_Wheel_C.TG=R_Wheel_D.TG=0.0f;
+    R_Wheel_A.PWM=R_Wheel_B.PWM=R_Wheel_C.PWM=R_Wheel_D.PWM=0;
+#if ROBOT_TYPE == ROBOT_FWD
+    AX_ENCODER_SyncDeltas();
+#else
+    AX_ENCODER_A_SetCounter(0); AX_ENCODER_B_SetCounter(0);
+    AX_ENCODER_C_SetCounter(0); AX_ENCODER_D_SetCounter(0);
+#endif
 }
 
 

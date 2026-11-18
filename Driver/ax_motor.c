@@ -1,27 +1,27 @@
 /**			                                                    
-		   ____                    _____ _______ _____       XTARK@å¡”å…‹åˆ›æ–°
+		   ____                    _____ _______ _____       XTARK@Ëş¿Ë´´ĞÂ
 		  / __ \                  / ____|__   __|  __ \ 
 		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
 		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
 		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
 		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
 				| |                                     
-				|_|                OpenCTR   æœºå™¨äººæ§åˆ¶å™¨
+				|_|                OpenCTR   »úÆ÷ÈË¿ØÖÆÆ÷
 									 
   ****************************************************************************** 
   *           
-  * ç‰ˆæƒæ‰€æœ‰ï¼š XTARK@å¡”å…‹åˆ›æ–°  ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶
-  * å…¬å¸ç½‘ç«™ï¼š www.xtark.cn   www.tarkbot.com
-  * æ·˜å®åº—é“ºï¼š https://xtark.taobao.com  
-  * å¡”å…‹å¾®ä¿¡ï¼š å¡”å…‹åˆ›æ–°ï¼ˆå…³æ³¨å…¬ä¼—å·ï¼Œè·å–æœ€æ–°æ›´æ–°èµ„è®¯ï¼‰
+  * °æÈ¨ËùÓĞ£º XTARK@Ëş¿Ë´´ĞÂ  °æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿
+  * ¹«Ë¾ÍøÕ¾£º www.xtark.cn   www.tarkbot.com
+  * ÌÔ±¦µêÆÌ£º https://xtark.taobao.com  
+  * Ëş¿ËÎ¢ĞÅ£º Ëş¿Ë´´ĞÂ£¨¹Ø×¢¹«ÖÚºÅ£¬»ñÈ¡×îĞÂ¸üĞÂ×ÊÑ¶£©
   *      
   ******************************************************************************
-  * @ä½œ  è€…  Musk Han@XTARK
-  * @ç‰ˆ  æœ¬  V1.0
-  * @å†…  å®¹  ç”µæœºPWMæ§åˆ¶å‡½æ•°
+  * @×÷  Õß  Musk Han@XTARK
+  * @°æ  ±¾  V1.0
+  * @ÄÚ  Èİ  µç»úPWM¿ØÖÆº¯Êı
   *
   ******************************************************************************
-  * @è¯´  æ˜
+  * @Ëµ  Ã÷
   *
   ******************************************************************************
   */
@@ -29,9 +29,9 @@
 #include "ax_motor.h" 
 
 /**
-  * @ç®€  è¿°  ç”µæœºPWMæ§åˆ¶åˆå§‹åŒ–ï¼ŒPWMé¢‘ç‡ä¸º20KHZ	
-  * @å‚  æ•°  æ— 
-  * @è¿”å›å€¼  æ— 
+  * @¼ò  Êö  µç»úPWM¿ØÖÆ³õÊ¼»¯£¬PWMÆµÂÊÎª20KHZ	
+  * @²Î  Êı  ÎŞ
+  * @·µ»ØÖµ  ÎŞ
   */
 void AX_MOTOR_AB_Init(void)
 { 
@@ -41,35 +41,35 @@ void AX_MOTOR_AB_Init(void)
     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
     TIM_OCInitTypeDef  TIM_OCInitStructure; 
 	
-	//æ—¶é’Ÿä½¿èƒ½
+	//Ê±ÖÓÊ¹ÄÜ
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);		
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);	
 
-	//å¤ç”¨åŠŸèƒ½é…ç½®
+	//¸´ÓÃ¹¦ÄÜÅäÖÃ
 	GPIO_PinAFConfig(GPIOE,GPIO_PinSource9,GPIO_AF_TIM1); 
 	GPIO_PinAFConfig(GPIOE,GPIO_PinSource11,GPIO_AF_TIM1); 
 	GPIO_PinAFConfig(GPIOE,GPIO_PinSource13,GPIO_AF_TIM1); 
 	GPIO_PinAFConfig(GPIOE,GPIO_PinSource14,GPIO_AF_TIM1); 
 	
-	//é…ç½®IOå£ä¸ºå¤ç”¨åŠŸèƒ½-å®šæ—¶å™¨é€šé“
+	//ÅäÖÃIO¿ÚÎª¸´ÓÃ¹¦ÄÜ-¶¨Ê±Æ÷Í¨µÀ
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_9 | GPIO_Pin_11 | GPIO_Pin_13 | GPIO_Pin_14;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;        //å¤ç”¨åŠŸèƒ½
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	//é€Ÿåº¦100MHz
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //æ¨æŒ½å¤ç”¨è¾“å‡º
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;        //ä¸Šæ‹‰
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;        //¸´ÓÃ¹¦ÄÜ
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	//ËÙ¶È100MHz
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //ÍÆÍì¸´ÓÃÊä³ö
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;        //ÉÏÀ­
     GPIO_Init(GPIOE, &GPIO_InitStructure);
 
-	//å®šæ—¶å™¨é…ç½®
-	TIM_TimeBaseStructure.TIM_Period=4200-1;   //è‡ªåŠ¨é‡è£…è½½å€¼	
-	TIM_TimeBaseStructure.TIM_Prescaler=1;     //å®šæ—¶å™¨åˆ†é¢‘
-	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //å‘ä¸Šè®¡æ•°æ¨¡å¼
+	//¶¨Ê±Æ÷ÅäÖÃ
+	TIM_TimeBaseStructure.TIM_Period=4200-1;   //×Ô¶¯ÖØ×°ÔØÖµ	
+	TIM_TimeBaseStructure.TIM_Prescaler=1;     //¶¨Ê±Æ÷·ÖÆµ
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //ÏòÉÏ¼ÆÊıÄ£Ê½
 	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 
     TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
 
     //PWM1 Mode configuration: Channel1 
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = 0;	    //å ç©ºæ¯”åˆå§‹åŒ–
+    TIM_OCInitStructure.TIM_Pulse = 0;	    //Õ¼¿Õ±È³õÊ¼»¯
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	
     TIM_OC1Init(TIM1, &TIM_OCInitStructure);
@@ -89,18 +89,18 @@ void AX_MOTOR_AB_Init(void)
 
     TIM_ARRPreloadConfig(TIM1, ENABLE);
 
-    //ä½¿èƒ½å®šæ—¶å™¨
+    //Ê¹ÄÜ¶¨Ê±Æ÷
     TIM_Cmd(TIM1, ENABLE);   
 	
-	//ä½¿èƒ½MOEä½
+	//Ê¹ÄÜMOEÎ»
 	TIM_CtrlPWMOutputs(TIM1,ENABLE);
 	
 }
 
 /**
-  * @ç®€  è¿° ç”µæœºPWMé€Ÿåº¦æ§åˆ¶
-  * @å‚  æ•° speed ç”µæœºè½¬é€Ÿæ•°å€¼ï¼ŒèŒƒå›´-4200~4200
-  * @è¿”å›å€¼ æ— 
+  * @¼ò  Êö µç»úPWMËÙ¶È¿ØÖÆ
+  * @²Î  Êı speed µç»ú×ªËÙÊıÖµ£¬·¶Î§-4200~4200
+  * @·µ»ØÖµ ÎŞ
   */
 void AX_MOTOR_A_SetSpeed(int16_t speed)
 {
@@ -127,9 +127,9 @@ void AX_MOTOR_A_SetSpeed(int16_t speed)
 
 
 /**
-  * @ç®€  è¿° ç”µæœºPWMé€Ÿåº¦æ§åˆ¶
-  * @å‚  æ•° speed ç”µæœºè½¬é€Ÿæ•°å€¼ï¼ŒèŒƒå›´-4200~4200
-  * @è¿”å›å€¼ æ— 
+  * @¼ò  Êö µç»úPWMËÙ¶È¿ØÖÆ
+  * @²Î  Êı speed µç»ú×ªËÙÊıÖµ£¬·¶Î§-4200~4200
+  * @·µ»ØÖµ ÎŞ
   */
 void AX_MOTOR_B_SetSpeed(int16_t speed)
 {
@@ -156,9 +156,9 @@ void AX_MOTOR_B_SetSpeed(int16_t speed)
 
 
 /**
-  * @ç®€  è¿°  ç”µæœºPWMæ§åˆ¶åˆå§‹åŒ–ï¼ŒPWMé¢‘ç‡ä¸º20KHZ	
-  * @å‚  æ•°  æ— 
-  * @è¿”å›å€¼  æ— 
+  * @¼ò  Êö  µç»úPWM¿ØÖÆ³õÊ¼»¯£¬PWMÆµÂÊÎª20KHZ	
+  * @²Î  Êı  ÎŞ
+  * @·µ»ØÖµ  ÎŞ
   */
 void AX_MOTOR_CD_Init(void)
 { 
@@ -167,33 +167,33 @@ void AX_MOTOR_CD_Init(void)
     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
     TIM_OCInitTypeDef  TIM_OCInitStructure; 
 	
-	//æ—¶é’Ÿä½¿èƒ½
+	//Ê±ÖÓÊ¹ÄÜ
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);		
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM9, ENABLE);	
 
-	//å¤ç”¨åŠŸèƒ½é…ç½®
+	//¸´ÓÃ¹¦ÄÜÅäÖÃ
 	GPIO_PinAFConfig(GPIOE,GPIO_PinSource5,GPIO_AF_TIM9);
     GPIO_PinAFConfig(GPIOE,GPIO_PinSource6,GPIO_AF_TIM9);
 	
-	//é…ç½®IOå£ä¸ºå¤ç”¨åŠŸèƒ½-å®šæ—¶å™¨é€šé“
+	//ÅäÖÃIO¿ÚÎª¸´ÓÃ¹¦ÄÜ-¶¨Ê±Æ÷Í¨µÀ
 	GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_5 | GPIO_Pin_6;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;        //å¤ç”¨åŠŸèƒ½
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	//é€Ÿåº¦100MHz
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //æ¨æŒ½å¤ç”¨è¾“å‡º
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;        //ä¸Šæ‹‰
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;        //¸´ÓÃ¹¦ÄÜ
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;	//ËÙ¶È100MHz
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;      //ÍÆÍì¸´ÓÃÊä³ö
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;        //ÉÏÀ­
     GPIO_Init(GPIOE, &GPIO_InitStructure);
 
-	//å®šæ—¶å™¨é…ç½® 
-	TIM_TimeBaseStructure.TIM_Period=4200-1;   //è‡ªåŠ¨é‡è£…è½½å€¼	
-	TIM_TimeBaseStructure.TIM_Prescaler=1;  //å®šæ—¶å™¨åˆ†é¢‘
-	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //å‘ä¸Šè®¡æ•°æ¨¡å¼
+	//¶¨Ê±Æ÷ÅäÖÃ 
+	TIM_TimeBaseStructure.TIM_Period=4200-1;   //×Ô¶¯ÖØ×°ÔØÖµ	
+	TIM_TimeBaseStructure.TIM_Prescaler=1;  //¶¨Ê±Æ÷·ÖÆµ
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //ÏòÉÏ¼ÆÊıÄ£Ê½
 	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 
     TIM_TimeBaseInit(TIM9, &TIM_TimeBaseStructure);
 
     //PWM1 Mode configuration: Channel1 
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = 0;	    //å ç©ºæ¯”åˆå§‹åŒ–
+    TIM_OCInitStructure.TIM_Pulse = 0;	    //Õ¼¿Õ±È³õÊ¼»¯
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	
 	
@@ -206,38 +206,38 @@ void AX_MOTOR_CD_Init(void)
 
     TIM_ARRPreloadConfig(TIM9, ENABLE);
 
-    //ä½¿èƒ½å®šæ—¶å™¨
+    //Ê¹ÄÜ¶¨Ê±Æ÷
     TIM_Cmd(TIM9, ENABLE);   
 	
 	
-	//æ—¶é’Ÿä½¿èƒ½
+	//Ê±ÖÓÊ¹ÄÜ
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);		
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);	
 
-	//å¤ç”¨åŠŸèƒ½é…ç½®
-	GPIO_PinAFConfig(GPIOB,GPIO_PinSource14,GPIO_AF_TIM12);/*å¤ç”¨*/
-    GPIO_PinAFConfig(GPIOB,GPIO_PinSource15,GPIO_AF_TIM12);/*å¤ç”¨*/
+	//¸´ÓÃ¹¦ÄÜÅäÖÃ
+	GPIO_PinAFConfig(GPIOB,GPIO_PinSource14,GPIO_AF_TIM12);/*¸´ÓÃ*/
+    GPIO_PinAFConfig(GPIOB,GPIO_PinSource15,GPIO_AF_TIM12);/*¸´ÓÃ*/
 	
 
-	//é…ç½®IOå£ä¸ºå¤ç”¨åŠŸèƒ½-å®šæ—¶å™¨é€šé“
+	//ÅäÖÃIO¿ÚÎª¸´ÓÃ¹¦ÄÜ-¶¨Ê±Æ÷Í¨µÀ
 	GPIO_InitStructure.GPIO_Pin    =  GPIO_Pin_14 | GPIO_Pin_15;
-	GPIO_InitStructure.GPIO_Mode   =  GPIO_Mode_AF;        //å¤ç”¨åŠŸèƒ½
-	GPIO_InitStructure.GPIO_Speed  =  GPIO_Speed_100MHz;	//é€Ÿåº¦100MHz
-	GPIO_InitStructure.GPIO_OType  =  GPIO_OType_PP;      //æ¨æŒ½å¤ç”¨è¾“å‡º
-	GPIO_InitStructure.GPIO_PuPd   =  GPIO_PuPd_UP;        //ä¸Šæ‹‰
+	GPIO_InitStructure.GPIO_Mode   =  GPIO_Mode_AF;        //¸´ÓÃ¹¦ÄÜ
+	GPIO_InitStructure.GPIO_Speed  =  GPIO_Speed_100MHz;	//ËÙ¶È100MHz
+	GPIO_InitStructure.GPIO_OType  =  GPIO_OType_PP;      //ÍÆÍì¸´ÓÃÊä³ö
+	GPIO_InitStructure.GPIO_PuPd   =  GPIO_PuPd_UP;        //ÉÏÀ­
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-	//å®šæ—¶å™¨é…ç½®
-	TIM_TimeBaseStructure.TIM_Period=4200-1;   //è‡ªåŠ¨é‡è£…è½½å€¼	
-	TIM_TimeBaseStructure.TIM_Prescaler=0;  //å®šæ—¶å™¨åˆ†é¢‘
-	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //å‘ä¸Šè®¡æ•°æ¨¡å¼
+	//¶¨Ê±Æ÷ÅäÖÃ
+	TIM_TimeBaseStructure.TIM_Period=4200-1;   //×Ô¶¯ÖØ×°ÔØÖµ	
+	TIM_TimeBaseStructure.TIM_Prescaler=0;  //¶¨Ê±Æ÷·ÖÆµ
+	TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up; //ÏòÉÏ¼ÆÊıÄ£Ê½
 	TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIV1; 
     TIM_TimeBaseInit(TIM12, &TIM_TimeBaseStructure);
 
     //PWM1 Mode configuration: Channel1 
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-    TIM_OCInitStructure.TIM_Pulse = 0;	    //å ç©ºæ¯”åˆå§‹åŒ–
+    TIM_OCInitStructure.TIM_Pulse = 0;	    //Õ¼¿Õ±È³õÊ¼»¯
     TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	
 	
@@ -250,14 +250,14 @@ void AX_MOTOR_CD_Init(void)
 
     TIM_ARRPreloadConfig(TIM12, ENABLE);	
 
-    //ä½¿èƒ½å®šæ—¶å™¨
+    //Ê¹ÄÜ¶¨Ê±Æ÷
     TIM_Cmd(TIM12, ENABLE);   
 }
 
 /**
-  * @ç®€  è¿° ç”µæœºPWMé€Ÿåº¦æ§åˆ¶
-  * @å‚  æ•° speed ç”µæœºè½¬é€Ÿæ•°å€¼ï¼ŒèŒƒå›´-4200~4200
-  * @è¿”å›å€¼ æ— 
+  * @¼ò  Êö µç»úPWMËÙ¶È¿ØÖÆ
+  * @²Î  Êı speed µç»ú×ªËÙÊıÖµ£¬·¶Î§-4200~4200
+  * @·µ»ØÖµ ÎŞ
   */
 void AX_MOTOR_C_SetSpeed(int16_t speed)
 {
@@ -285,9 +285,9 @@ void AX_MOTOR_C_SetSpeed(int16_t speed)
 
 
 /**
-  * @ç®€  è¿° ç”µæœºPWMé€Ÿåº¦æ§åˆ¶
-  * @å‚  æ•° speed ç”µæœºè½¬é€Ÿæ•°å€¼ï¼ŒèŒƒå›´-4200~4200
-  * @è¿”å›å€¼ æ— 
+  * @¼ò  Êö µç»úPWMËÙ¶È¿ØÖÆ
+  * @²Î  Êı speed µç»ú×ªËÙÊıÖµ£¬·¶Î§-4200~4200
+  * @·µ»ØÖµ ÎŞ
   */
 void AX_MOTOR_D_SetSpeed(int16_t speed)
 {
@@ -313,4 +313,4 @@ void AX_MOTOR_D_SetSpeed(int16_t speed)
 }
 
 
-/******************* (C) ç‰ˆæƒ 2023 XTARK **************************************/
+/******************* (C) °æÈ¨ 2023 XTARK **************************************/

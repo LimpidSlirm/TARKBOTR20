@@ -32,6 +32,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 
+#ifndef APP_KEY_TURN_TEST
+#define APP_KEY_TURN_TEST 0
+#endif
+
+#if APP_KEY_TURN_TEST
+void Key_Motion_Step(void);
+#endif
+
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

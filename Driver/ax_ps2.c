@@ -1,39 +1,39 @@
 /**			                                                    
-		   ____                    _____ _______ _____       XTARK@Â°îÂÖãÂàõÊñ∞
+		   ____                    _____ _______ _____       XTARK@À˛øÀ¥¥–¬
 		  / __ \                  / ____|__   __|  __ \ 
 		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
 		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
 		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
 		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
 				| |                                     
-				|_|                OpenCTR   Êú∫Âô®‰∫∫ÊéßÂà∂Âô®
+				|_|                OpenCTR   ª˙∆˜»Àøÿ÷∆∆˜
 									 
   ****************************************************************************** 
   *           
-  * ÁâàÊùÉÊâÄÊúâÔºö XTARK@Â°îÂÖãÂàõÊñ∞  ÁâàÊùÉÊâÄÊúâÔºåÁõóÁâàÂøÖÁ©∂
-  * ÂÖ¨Âè∏ÁΩëÁ´ôÔºö www.xtark.cn   www.tarkbot.com
-  * Ê∑òÂÆùÂ∫óÈì∫Ôºö https://xtark.taobao.com  
-  * Â°îÂÖãÂæÆ‰ø°Ôºö Â°îÂÖãÂàõÊñ∞ÔºàÂÖ≥Ê≥®ÂÖ¨‰ºóÂè∑ÔºåËé∑ÂèñÊúÄÊñ∞Êõ¥Êñ∞ËµÑËÆØÔºâ
+  * ∞Ê»®À˘”–£∫ XTARK@À˛øÀ¥¥–¬  ∞Ê»®À˘”–£¨µ¡∞Ê±ÿæø
+  * π´ÀæÕ¯’æ£∫ www.xtark.cn   www.tarkbot.com
+  * Ã‘±¶µÍ∆Ã£∫ https://xtark.taobao.com  
+  * À˛øÀŒ¢–≈£∫ À˛øÀ¥¥–¬£®πÿ◊¢π´÷⁄∫≈£¨ªÒ»°◊Ó–¬∏¸–¬◊ —∂£©
   *      
   ******************************************************************************
-  * @‰Ωú  ËÄÖ  Musk Han@XTARK
-  * @Áâà  Êú¨  V1.0
-  * @ÂÜÖ  ÂÆπ  PS2Êó†Á∫øÊâãÊüÑÂáΩÊï∞Êñá‰ª∂
+  * @◊˜  ’ﬂ  Musk Han@XTARK
+  * @∞Ê  ±æ  V1.0
+  * @ƒ⁄  »›  PS2Œﬁœﬂ ÷±˙∫Ø ˝Œƒº˛
   *
   ******************************************************************************
-  * @ËØ¥  Êòé
+  * @Àµ  √˜
   *
-  *   PS2Êï∞ÊçÆÂÆö‰πâ
-  *   BYTE   DATA   Ëß£Èáä
+  *   PS2 ˝æ›∂®“Â
+  *   BYTE   DATA   Ω‚ Õ
   *   01     idle
-  *   02     0x73   ÊâãÊüÑÂ∑•‰ΩúÊ®°Âºè
+  *   02     0x73    ÷±˙π§◊˜ƒ£ Ω
   *   03     0x5A   Bit0  Bit1  Bit2  Bit3  Bit4  Bit5  Bit6  Bit7
   *   04     data   SLCT  JOYR  JOYL  STRT   UP   RGIHT  DOWN  LEFT
   *   05     data   L2     R2     L1    R1   Y     B     A      X
-  *   06     data   Âè≥ËæπÊëáÊùÜ  0x00 = Â∑¶    0xff = Âè≥
-  *   07     data   Âè≥ËæπÊëáÊùÜ  0x00 = ‰∏ä    0xff = ‰∏ã
-  *   08     data   Â∑¶ËæπÊëáÊùÜ  0x00 = Â∑¶    0xff = Âè≥
-  *   09     data   Â∑¶ËæπÊëáÊùÜ  0x00 = ‰∏ä    0xff = ‰∏ã
+  *   06     data   ”“±ﬂ“°∏À  0x00 = ◊Û    0xff = ”“
+  *   07     data   ”“±ﬂ“°∏À  0x00 = …œ    0xff = œ¬
+  *   08     data   ◊Û±ﬂ“°∏À  0x00 = ◊Û    0xff = ”“
+  *   09     data   ◊Û±ﬂ“°∏À  0x00 = …œ    0xff = œ¬
   * 
   ******************************************************************************
   */
@@ -43,27 +43,27 @@
 #include "ax_sys.h"
 
 
-//PS2ÊâãÊüÑÁöÑËæìÂÖ•ËæìÂá∫Âè£
-#define DI()     PEin(12)      //Êï∞ÊçÆËæìÂÖ•ÂºïËÑö
+//PS2 ÷±˙µƒ ‰»Î ‰≥ˆø⁄
+#define DI()     PEin(12)      // ˝æ› ‰»Î“˝Ω≈
 
-#define CMD_H()  PEout(10)=1   //ÂëΩ‰ª§‰ΩçÈ´ò
-#define CMD_L()  PEout(10)=0   //ÂëΩ‰ª§‰Ωç‰Ωé
+#define CMD_H()  PEout(10)=1   //√¸¡ÓŒª∏ﬂ
+#define CMD_L()  PEout(10)=0   //√¸¡ÓŒªµÕ
 
-#define CS_H()   PEout(8)=1    //CSÊãâÈ´ò(Âà´ÂêçATT)
-#define CS_L()   PEout(8)=0    //CSÊãâ‰Ωé(Âà´ÂêçATT)
+#define CS_H()   PEout(8)=1    //CS¿≠∏ﬂ(±√˚ATT)
+#define CS_L()   PEout(8)=0    //CS¿≠µÕ(±√˚ATT)
 
-#define CLK_H()  PEout(7)=1    //Êó∂ÈíüÊãâÈ´ò
-#define CLK_L()  PEout(7)=0    //Êó∂ÈíüÊãâ‰Ωé
+#define CLK_H()  PEout(7)=1    // ±÷”¿≠∏ﬂ
+#define CLK_L()  PEout(7)=0    // ±÷”¿≠µÕ
 
 
-const  uint8_t PS2_cmnd[9] = {0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};   //ËØ∑Ê±ÇËé∑ÂèñÊï∞ÊçÆÂëΩ‰ª§                         
-static uint8_t PS2_data[9] = {0};  //Êé•Êî∂ÁöÑÊï∞ÊçÆ
+const  uint8_t PS2_cmnd[9] = {0x01, 0x42, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};   //«Î«ÛªÒ»° ˝æ›√¸¡Ó                         
+static uint8_t PS2_data[9] = {0};  //Ω” ’µƒ ˝æ›
 
 
 /**
-  * @ÁÆÄ  Ëø∞  PS2ÂàùÂßãÂåñ
-  * @ÂèÇ  Êï∞  Êó†
-  * @ËøîÂõûÂÄº  Êó†
+  * @ºÚ   ˆ  PS2≥ı ºªØ
+  * @≤Œ   ˝  Œﬁ
+  * @∑µªÿ÷µ  Œﬁ
   */
 void AX_PS2_Init(void)
 {
@@ -71,14 +71,14 @@ void AX_PS2_Init(void)
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);  
 	
-	//DATA ‰ø°Âè∑‰ªéÊâãÊüÑÂà∞‰∏ªÊú∫   ËæìÂÖ•Âè£
+	//DATA –≈∫≈¥” ÷±˙µΩ÷˜ª˙    ‰»Îø⁄
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 	
-	//COMMMAND ‰ø°Âè∑‰ªé‰∏ªÊú∫Âà∞ÊâãÊüÑ  ËæìÂá∫
+	//COMMMAND –≈∫≈¥”÷˜ª˙µΩ ÷±˙   ‰≥ˆ
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -86,7 +86,7 @@ void AX_PS2_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 	
-	//CS ÊâãÊüÑÂá∫Âèë‰ø°Âè∑ ‰ø°Âè∑Âú®ÈÄö‰ø°ÊúüÈó¥Â§Ñ‰∫é‰ΩéÁîµÂπ≥	
+	//CS  ÷±˙≥ˆ∑¢–≈∫≈ –≈∫≈‘⁄Õ®–≈∆⁄º‰¥¶”⁄µÕµÁ∆Ω	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -94,7 +94,7 @@ void AX_PS2_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 
-	//CLK ‰ø°Âè∑‰ªé‰∏ªÊú∫Âà∞ÊâãÊüÑ   ËæìÂá∫Âè£
+	//CLK –≈∫≈¥”÷˜ª˙µΩ ÷±˙    ‰≥ˆø⁄
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -102,25 +102,25 @@ void AX_PS2_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);	
 	
-	//ÂÖ≥Èó≠PS2ÊâãÊüÑ‰ΩøËÉΩ
+	//πÿ±’PS2 ÷±˙ πƒ‹
 	CS_H();
 }
 
 
 /**
-  * @ÁÆÄ  Ëø∞  PS2Êï∞ÊçÆËØªÂÜôÂáΩÊï∞
-  * @ÂèÇ  Êï∞  cmd:Ë¶ÅÂÜôÂÖ•ÁöÑÂëΩ‰ª§
-  * @ËøîÂõûÂÄº  ËØªÂá∫Êï∞ÊçÆ
+  * @ºÚ   ˆ  PS2 ˝æ›∂¡–¥∫Ø ˝
+  * @≤Œ   ˝  cmd:“™–¥»Îµƒ√¸¡Ó
+  * @∑µªÿ÷µ  ∂¡≥ˆ ˝æ›
   */
 static uint8_t PS2_ReadWriteData(uint8_t cmd)
 {
 	volatile uint8_t res = 0;
 	volatile uint8_t ref;
 	
-	//ÂÜôÂÖ•ÂëΩ‰ª§ÔºåÂπ∂ËØªÂèñ‰∏Ä‰∏™1Â≠óËäÇÊï∞ÊçÆ
+	//–¥»Î√¸¡Ó£¨≤¢∂¡»°“ª∏ˆ1◊÷Ω⁄ ˝æ›
 	for(ref = 0x01; ref > 0x00; ref <<= 1)
 	{
-		////ËæìÂá∫‰∏Ä‰ΩçÊï∞ÊçÆ
+		//// ‰≥ˆ“ªŒª ˝æ›
 		if(ref&cmd)
 			CMD_H();
 		else
@@ -129,39 +129,39 @@ static uint8_t PS2_ReadWriteData(uint8_t cmd)
 		CLK_L();
 		AX_Delayus(16);
 		
-		//ËØªÂèñ‰∏Ä‰ΩçÊï∞ÊçÆ
+		//∂¡»°“ªŒª ˝æ›
 		if(DI())
 			res |= ref; 
 		CLK_H();
 		AX_Delayus(16);		
 	}
 
-	//ËøîÂõûËØªÂá∫Êï∞ÊçÆ
+	//∑µªÿ∂¡≥ˆ ˝æ›
     return res;	
 }
 
 /**
-  * @ÁÆÄ  Ëø∞  PS2Ëé∑ÂèñÊåâÈîÆÂèäÊëáÊùÜÊï∞ÂÄº„ÄÇ
-  * @ÂèÇ  Êï∞  *JoystickStruct ÊâãÊüÑÈîÆÂÄºÁªìÊûÑ‰Ωì
-  * @ËøîÂõûÂÄº  Êó†
+  * @ºÚ   ˆ  PS2ªÒ»°∞¥º¸º∞“°∏À ˝÷µ°£
+  * @≤Œ   ˝  *JoystickStruct  ÷±˙º¸÷µΩ·ππÃÂ
+  * @∑µªÿ÷µ  Œﬁ
   */
 void AX_PS2_ScanKey(JOYSTICK_TypeDef *JoystickStruct)
 {
 	uint8_t i;
 	
-	//‰ΩøËÉΩÊâãÊüÑ
+	// πƒ‹ ÷±˙
 	CS_L();
 	
-	//ËØªÂèñPS2Êï∞ÊçÆ
+	//∂¡»°PS2 ˝æ›
 	for(i=0; i<9; i++)
 	{
 		PS2_data[i] = PS2_ReadWriteData(PS2_cmnd[i]);
 	}
 	
-	//ÂÖ≥Èó≠‰ΩøËÉΩ
+	//πÿ±’ πƒ‹
 	CS_H();
 
-	//Êï∞ÂÄº‰º†ÈÄí
+	// ˝÷µ¥´µ›
 	JoystickStruct->mode = PS2_data[1];
 	JoystickStruct->btn1 = ~PS2_data[3];
 	JoystickStruct->btn2 = ~PS2_data[4];
@@ -171,4 +171,4 @@ void AX_PS2_ScanKey(JOYSTICK_TypeDef *JoystickStruct)
 	JoystickStruct->LJoy_UD = PS2_data[8];
 }
 
-/******************* (C) ÁâàÊùÉ 2023 XTARK **************************************/
+/******************* (C) ∞Ê»® 2023 XTARK **************************************/

@@ -2,6 +2,7 @@
 #define AX_TURN_H
 
 #include "turn_control.h"
+#include "ax_chassis_config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,7 +16,7 @@ extern "C" {
 #define AX_TURN_MAX_YAW_RADPS 0.60f
 #endif
 #ifndef AX_TURN_MAX_WHEEL_MPS
-#define AX_TURN_MAX_WHEEL_MPS 0.20f
+#define AX_TURN_MAX_WHEEL_MPS AX_FWD_MAX_WHEEL_MPS
 #endif
 
 typedef enum {
