@@ -37,6 +37,8 @@ int16_t AX_SPEED_PidCtlC(float spd_target, float spd_current);    //PID控制函
 int16_t AX_SPEED_PidCtlD(float spd_target, float spd_current);    //PID控制函数，电机D
 
 
+void AX_SPEED_Reset(void);
+
 #endif
 
 /******************* (C) 版权 2023 XTARK **************************************/

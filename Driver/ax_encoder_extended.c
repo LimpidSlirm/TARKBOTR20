@@ -7,6 +7,7 @@
  * The original uint16_t API truncated every channel, including TIM2/TIM5.
  */
 static volatile int32_t wraps[2];
+static uint32_t previous_count[4];
 static TIM_TypeDef *timer_for(unsigned channel)
 {
     switch(channel) {case 0u:return TIM2;case 1u:return TIM3;
@@ -64,4 +65,30 @@ void AX_ENCODER_SetExtended(unsigned channel,uint16_t value)
     timer->CNT=value;
     TIM_ClearITPendingBit(timer,TIM_IT_Update);
     taskEXIT_CRITICAL();
+}
+
+/* Velocity sampling never resets CNT or consults the update ISR.
+ * A 16-bit modular difference is unambiguous below 32768 counts/sample.
+ * The P30 spec is at most 380 rpm no-load at 12 V, about 31130 counts
+ * in 40 ms at 122880 counts/rev. The control task rejects longer gaps.
+ */
+int32_t AX_ENCODER_ReadDelta(unsigned channel)
+{
+    uint32_t now=timer_for(channel)->CNT;
+    uint32_t delta=now-previous_count[channel];
+    previous_count[channel]=now;
+
+    if(channel==1u || channel==3u) {
+        delta &= 0xffffu;
+        return delta<0x8000u ? (int32_t)delta : (int32_t)delta-65536;
+    }
+    return delta<=INT32_MAX ? (int32_t)delta : -1-(int32_t)(UINT32_MAX-delta);
+}
+
+void AX_ENCODER_SyncDeltas(void)
+{
+    unsigned channel;
+    for(channel=0u;channel<4u;++channel) {
+        previous_count[channel]=timer_for(channel)->CNT;
+    }
 }

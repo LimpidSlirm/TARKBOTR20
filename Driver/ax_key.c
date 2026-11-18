@@ -1,75 +1,83 @@
-/**			                                                    
-		   ____                    _____ _______ _____       XTARK@Ëş¿Ë´´ĞÂ
-		  / __ \                  / ____|__   __|  __ \ 
+/**
+		   ____                    _____ _______ _____       XTARK@å¡”å…‹åˆ›æ–°
+		  / __ \                  / ____|__   __|  __ \
 		 | |  | |_ __   ___ _ __ | |       | |  | |__) |
-		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  / 
-		 | |__| | |_) |  __/ | | | |____   | |  | | \ \ 
+		 | |  | | '_ \ / _ \ '_ \| |       | |  |  _  /
+		 | |__| | |_) |  __/ | | | |____   | |  | | \ \
 		  \____/| .__/ \___|_| |_|\_____|  |_|  |_|  \_\
-				| |                                     
-				|_|                OpenCTR   »úÆ÷ÈË¿ØÖÆÆ÷
-									 
-  ****************************************************************************** 
-  *           
-  * °æÈ¨ËùÓĞ£º XTARK@Ëş¿Ë´´ĞÂ  °æÈ¨ËùÓĞ£¬µÁ°æ±Ø¾¿
-  * ¹«Ë¾ÍøÕ¾£º www.xtark.cn   www.tarkbot.com
-  * ÌÔ±¦µêÆÌ£º https://xtark.taobao.com  
-  * Ëş¿ËÎ¢ĞÅ£º Ëş¿Ë´´ĞÂ£¨¹Ø×¢¹«ÖÚºÅ£¬»ñÈ¡×îĞÂ¸üĞÂ×ÊÑ¶£©
-  *      
+				| |
+				|_|                OpenCTR   æœºå™¨äººæ§åˆ¶å™¨
+
   ******************************************************************************
-  * @×÷  Õß  Musk Han@XTARK
-  * @°æ  ±¾  V1.0
-  * @ÄÚ  Èİ  °´¼ü¼ì²â
+  *
+  * ç‰ˆæƒæ‰€æœ‰ï¼š XTARK@å¡”å…‹åˆ›æ–°  ç‰ˆæƒæ‰€æœ‰ï¼Œç›—ç‰ˆå¿…ç©¶
+  * å…¬å¸ç½‘ç«™ï¼š www.xtark.cn   www.tarkbot.com
+  * æ·˜å®åº—é“ºï¼š https://xtark.taobao.com
+  * å¡”å…‹å¾®ä¿¡ï¼š å¡”å…‹åˆ›æ–°ï¼ˆå…³æ³¨å…¬ä¼—å·ï¼Œè·å–æœ€æ–°æ›´æ–°èµ„è®¯ï¼‰
   *
   ******************************************************************************
-  * @Ëµ  Ã÷
+  * @ä½œ  è€…  Musk Han@XTARK
+  * @ç‰ˆ  æœ¬  V1.0
+  * @å†…  å®¹  æŒ‰é”®æ£€æµ‹
   *
-  * 1.»ñÈ¡¼üÖµ£¬¡£
-  * 
+  ******************************************************************************
+  * @è¯´  æ˜
+  *
+  * 1.è·å–é”®å€¼ï¼Œã€‚
+  *
   ******************************************************************************
   */
 
 #include "ax_key.h"
 #include "ax_delay.h"
 #include "ax_sys.h"
+#include "ax_board_config.h"
+#if AX_BOARD_H60_V37
+#define AX_KEY_PIN GPIO_Pin_1
+#define AX_KEY_INPUT() GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_1)
+#else
+#define AX_KEY_PIN GPIO_Pin_0
+#define AX_KEY_INPUT() GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_0)
+#endif
 
 /**
-  * @¼ò  Êö  KEY °´¼ü³õÊ¼»¯
-  * @²Î  Êı  ÎŞ
-  * @·µ»ØÖµ  ÎŞ
+  * @ç®€  è¿°  KEY æŒ‰é”®åˆå§‹åŒ–
+  * @å‚  æ•°  æ— 
+  * @è¿”å›å€¼  æ— 
   */
 void AX_KEY_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
-	
-	//GPIOÅäÖÃ 
-	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOE, ENABLE); //Æô¶¯GPIOÊ±ÖÓ 
-	
 
-	//ÅäÖÃÄ£Ê½Ñ¡ÔñS1 GPIO  ÊäÈëÄ£Ê½
-	GPIO_SetBits(GPIOE,  GPIO_Pin_0);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+	//GPIOé…ç½®
+	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOE, ENABLE); //å¯åŠ¨GPIOæ—¶é’Ÿ
+
+
+	//é…ç½®æ¨¡å¼é€‰æ‹©S1 GPIO  è¾“å…¥æ¨¡å¼
+	GPIO_SetBits(GPIOE, AX_KEY_PIN);
+	GPIO_InitStructure.GPIO_Pin = AX_KEY_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ÉÏÀ­
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//ä¸Šæ‹‰
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
-	
+
 }
 
 /**
-  * @¼ò  Êö  KEY »ñÈ¡°´¼üÖµ
-  * @²Î  Êı  ÎŞ
-  * @·µ»ØÖµ  °´¼üÖµ£¬°´¼ü°´ÏÂÎª1£¬Ì§ÆğÎª0
+  * @ç®€  è¿°  KEY è·å–æŒ‰é”®å€¼
+  * @å‚  æ•°  æ— 
+  * @è¿”å›å€¼  æŒ‰é”®å€¼ï¼ŒæŒ‰é”®æŒ‰ä¸‹ä¸º1ï¼ŒæŠ¬èµ·ä¸º0
   */
 uint8_t AX_KEY_Scan(void)
 {
-	if(PEin(0) == 0)		
+	if(AX_KEY_INPUT() == 0)
 	{
 		return 1;
 	}
-	
+
 	return 0;
 }
 
 
 
-/******************* (C) °æÈ¨ 2023 XTARK **************************************/
+/******************* (C) ç‰ˆæƒ 2023 XTARK **************************************/

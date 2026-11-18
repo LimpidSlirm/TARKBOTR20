@@ -48,8 +48,8 @@
             <NotGenerated>0</NotGenerated>
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
-          <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>xproject</OutputName>
+          <OutputDirectory>.\Build\</OutputDirectory>
+          <OutputName>competition</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -337,7 +337,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
+              <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER,APP_KEY_TURN_TEST=1</Define>
               <Undefine></Undefine>
               <IncludePath>..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Libraries\CMSIS\Device\ST\STM32F4xx\Include;..\Libraries\CMSIS\Include;..\FreeRTOS\include;..\FreeRTOS\port\RVDS\ARM_CM4F;..\Driver;..\Robot;..\Driver\ax_oled;..\Robot\app;..\Robot\control;..\Robot\platform;..\Robot\modules\light;..\Robot\modules\ramp;..\Robot\modules\turn;..\Robot\modules\key</IncludePath>
             </VariousControls>
@@ -437,6 +437,11 @@
               <FileName>ax_ramp.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Robot\modules\ramp\ax_ramp.c</FilePath>
+            </File>
+            <File>
+              <FileName>ax_motion_sequence.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Robot\modules\ramp\ax_motion_sequence.c</FilePath>
             </File>
             <File>
               <FileName>ax_turn.c</FileName>
@@ -587,6 +592,16 @@
               <FileName>ax_ps2.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Driver\ax_ps2.c</FilePath>
+            </File>
+            <File>
+              <FileName>ax_imu_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\ax_imu_bus.c</FilePath>
+            </File>
+            <File>
+              <FileName>ax_encoder_extended.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\ax_encoder_extended.c</FilePath>
             </File>
           </Files>
         </Group>

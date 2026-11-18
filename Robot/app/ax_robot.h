@@ -29,6 +29,8 @@
 
 /* Includes ------------------------------------------------------------------*/	 
 #include "stm32f4xx.h"
+#include "ax_chassis_config.h"
+#include "ax_board_config.h"
 
 //C库函数的相关头文件
 #include <stdio.h> 
@@ -157,7 +159,7 @@ typedef struct
 #define ROBOT_OMT   0x06   //三轮全向底盘
 
 //机器人定义类型
-#define ROBOT_TYPE   ROBOT_MEC
+#define ROBOT_TYPE   ROBOT_FWD
 
 /******机器人参数*************************************/
 
@@ -169,11 +171,11 @@ typedef struct
 #define  MEC_WHEEL_SCALE          (PI*MEC_WHEEL_DIAMETER*PID_RATE/MEC_WHEEL_RESOLUTION) //轮子速度m/s与编码器转换系数
 
 //四轮差速机器人参数
-//由于轮胎摩擦力较大，采用60减速比电机，电机转向与30减速比相反
-#define  FWD_WHEEL_BASE           0.200	     //轮距，左右轮的距离
-#define  FWD_WB_SCALE             1.75       //轮距系数，轮距系数与机器人的总负载、轮胎与地面的相对摩擦系数、转弯半径及质心位置都是有关系是一个非常复杂的参数，所以常用的方法就是做实验
-#define  FWD_WHEEL_DIAMETER	      0.100		 //轮子直径
-#define  FWD_WHEEL_RESOLUTION     3120.0     //编码器分辨率(13线),减速比60,13x60x4=3120
+// Competition P30 / 1024-line magnetic encoder / 65 mm wheel, per training manual.
+#define  FWD_WHEEL_BASE           AX_COMP_TRACK_M
+#define  FWD_WB_SCALE             AX_COMP_TRACK_FACTOR
+#define  FWD_WHEEL_DIAMETER	      AX_COMP_WHEEL_DIAMETER_M
+#define  FWD_WHEEL_RESOLUTION     AX_COMP_ENCODER_COUNTS
 #define  FWD_WHEEL_SCALE          (PI*FWD_WHEEL_DIAMETER*PID_RATE/FWD_WHEEL_RESOLUTION) //轮子速度m/s与编码器转换系数
 
 //阿克曼机器人参数
@@ -230,9 +232,9 @@ typedef struct
 #define  ID_CANTX_MSG3    0x0123    //发送的机器人数据3
 
 //机器人速度限制
-#define R_VX_LIMIT  1500   //X轴速度限值 m/s*1000
+#define R_VX_LIMIT 120  /* bring-up forward limit, mm/s */
 #define R_VY_LIMIT  1200   //Y轴速度限值 m/s*1000
-#define R_VW_LIMIT  6280   //W旋转角速度限值 rad/s*1000
+#define R_VW_LIMIT 600  /* bring-up yaw limit, mrad/s */
 
 //灯光模式
 #define  LEFFECT1    0x01    //单色模式  
@@ -251,6 +253,12 @@ typedef struct
 //蜂鸣器鸣长短
 #define  BEEP_SHORT   0x01    //蜂鸣器短鸣叫一声(200ms)
 #define  BEEP_LONG    0x02    //蜂鸣器长鸣叫一声(1000ms)
+
+extern uint8_t ax_robot_move_enable;
+void AX_ROBOT_LatchFault(uint8_t code);
+extern volatile uint8_t ax_motion_fault; /* 1=IMU, 2=timing, 3=overspeed, 4=task, 5-8=sequence, 9=wheel feedback */
+extern volatile uint8_t ax_feedback_fault_mask; /* bit 0/1/2/3: A/B/C/D */
+extern float ax_control_dt_s;
 
 //机器人关键全局变量
 extern  ROBOT_Velocity  R_Vel; //机器人速度数据

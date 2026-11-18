@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @内  容  速度斜坡发生器：平滑加速 / 平滑减速（加加速度受限 S 曲线）
+  * @内  容  速度斜坡发生器：平滑加减速与内部加速度变化率限制
   *
   *          解决的问题：
   *            - 让速度指令从任意当前值平滑过渡到任意目标值；
@@ -13,7 +13,9 @@
   *            R_Vel.TG_IX（mm/s），交给原有 AX_ROBOT_Kinematics() 逆解成
   *            四轮目标速度，再由四轮 PID 跟。本模块不碰电机、不碰转向。
   *
-  *          不碰 R_Vel.TG_IW：转向仍由转向模块负责，两者互不干扰。
+  *          不碰 R_Vel.TG_IW；转向与斜坡组合时，必须用当前斜坡速度计算
+  *          转向目标，避免 Apply 覆盖转向模块联合限幅的 TG_IX。
+  *          当前实现限速/到点时会钳位，不保证实际输出的严格 jerk 上限。
   ******************************************************************************
   */
 
@@ -60,7 +62,7 @@ typedef struct
 /* 初始化（编译期默认参数），上电调用一次 */
 void AX_RAMP_Init(void);
 
-/* 设置参数，返回 AX_RAMP_OK / AX_RAMP_ERR_PARAM（非法值保持原参数） */
+/* 仅静止时设置参数，返回 OK / ERR_PARAM（非法值保持原参数） */
 uint8_t AX_RAMP_Config(float v_max, float a_max, float d_max, float j_max);
 
 /* 设置速度死区，低于此速度视为 0 */
@@ -81,10 +83,10 @@ void AX_RAMP_To(float v_mps);
 /* 平滑减速到 0（等价于 AX_RAMP_To(0)） */
 void AX_RAMP_Stop(void);
 
-/* 急停：立即清零，不走斜坡（仅故障保护用） */
+/* 仅立即清零斜坡状态；整车急停仍须 AX_ROBOT_Stop() 清除转向和 PWM。 */
 void AX_RAMP_EmergencyStop(void);
 
-/* 交还控制权，恢复原有手柄/串口控制 */
+/* 仅释放斜坡接管；调用者负责切换控制来源及更新实际目标。 */
 void AX_RAMP_Release(void);
 
 /* 每 20ms 调用一次，推进斜坡曲线（dt 单位 s） */
@@ -98,8 +100,8 @@ float   AX_RAMP_GetSpeed(void);     /* 当前输出速度 m/s          */
 float   AX_RAMP_GetTarget(void);    /* 当前目标速度 m/s          */
 float   AX_RAMP_GetAccel(void);     /* 当前加速度 m/s^2          */
 uint8_t AX_RAMP_IsActive(void);     /* 是否接管中                */
-uint8_t AX_RAMP_IsSettled(void);    /* 是否已到目标速度          */
-uint8_t AX_RAMP_IsStopped(void);    /* 是否已停稳                */
+uint8_t AX_RAMP_IsSettled(void);    /* 指令到目标且内部加速度为零 */
+uint8_t AX_RAMP_IsStopped(void);    /* 指令为零，不代表实车已停稳 */
 
 /* 调试用：读取内部状态 */
 const AX_RAMP_Ctx *AX_RAMP_GetCtx(void);

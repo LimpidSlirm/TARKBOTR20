@@ -28,6 +28,13 @@
 #include "ax_light.h"
 #include "ax_kinematics.h"
 #include "ax_control.h"
+#include "main.h"
+
+#if APP_KEY_TURN_TEST
+#include "ax_turn.h"
+#include "key_module.h"
+#include "key_gpio_tarkbot.h"
+#endif
 
 //机器人速度数据
 ROBOT_Velocity  R_Vel;
@@ -42,7 +49,7 @@ ROBOT_Imu  R_Imu;
 ROBOT_Light  R_Light;
 
 //机器人速度数据
-ROBOT_Velocity  R_Vel;
+
 
 //机器人电池电压数据
 uint16_t R_Bat_Vol;  
@@ -57,7 +64,21 @@ int16_t ax_motor_kp=800;
 int16_t ax_motor_kd=1000; 
 
 //机器人运动使能开关,默认打开状态
-uint8_t ax_robot_move_enable = 1;
+uint8_t ax_robot_move_enable = 0; /* Enabled only after healthy startup. */
+volatile uint8_t ax_motion_fault;
+volatile uint8_t ax_feedback_fault_mask;
+float ax_control_dt_s=0.02f;
+
+/* Preserve the first fault and keep the legacy control sources from restarting. */
+void AX_ROBOT_LatchFault(uint8_t code)
+{
+    taskENTER_CRITICAL();
+    if (!ax_motion_fault) ax_motion_fault = code;
+    ax_robot_move_enable = 0u;
+    AX_ROBOT_Stop();
+    taskEXIT_CRITICAL();
+}
+
 
 //IMU校准标志位
 int8_t ax_imu_calibrate_flag = 0;
@@ -83,6 +104,8 @@ int16_t ax_akm_angle = 0;
 //阿克曼机器人前轮零偏角度
 int16_t ax_akm_offset = 0;
 
+
+
 //函数定义
 void ROBOT_IMUHandle(void);     //IMU数据处理
 void ROBOT_SendDataToRos(void);  //发送数据
@@ -98,19 +121,34 @@ void Robot_Task(void* parameter)
 
 	//用于保存上次时间。调用后系统自动更新
 	static portTickType PreviousWakeTime;
+    TickType_t last_cycle,now,gap;
 
 	//设置延时时间20ms，将时间转为节拍数 
 	const portTickType TimeIncrement = pdMS_TO_TICKS(20);
 	
 	//获取当前系统时间 
 	PreviousWakeTime = xTaskGetTickCount();
+    last_cycle=PreviousWakeTime;
 	
 	while(1)
 	{
 		
 		//调用绝对延时函数20ms,执行频率50HZ
 		vTaskDelayUntil(&PreviousWakeTime, TimeIncrement );
+        now=xTaskGetTickCount(); gap=now-last_cycle; last_cycle=now;
+        if (gap==0u || gap>pdMS_TO_TICKS(AX_CONTROL_MAX_GAP_MS)) {
+            AX_ROBOT_LatchFault(2u);
+        }
+        ax_control_dt_s=(gap ? gap : 1u)/(float)configTICK_RATE_HZ;
+        ROBOT_IMUHandle();
+        if (!AX_MPU6050_IsReady()) { AX_ROBOT_LatchFault(1u); }
+
 		
+#if APP_KEY_TURN_TEST
+        Key_Motion_Step();
+#else
+        if (ax_motion_fault) ax_robot_move_enable = 0u;
+
 		//控制方式选择
 		if(ax_control_mode != 0)
 		{
@@ -131,8 +169,9 @@ void Robot_Task(void* parameter)
 			AX_ROBOT_Stop();				
 		}
 		
-		//获取PMU6050加速度数据
-        ROBOT_IMUHandle();
+#endif
+
+
 		
 		//数据发送
 		ROBOT_SendDataToRos();
@@ -236,7 +275,8 @@ void Trivia_Task(void* parameter)
 	static uint16_t ax_bat_vol_cnt = 0; 
 	
 	//陀螺仪校准变量
-	static int16_t gyro_data[3]; 
+	static int16_t gyro_data[3];
+    int32_t gyro_sum[3];
 	
 
 	while (1)
@@ -276,7 +316,8 @@ void Trivia_Task(void* parameter)
 						AX_LED_Red_On();
 						
 						//任务挂起
-						vTaskSuspend(Robot_Task_Handle);
+						ax_robot_move_enable=0u; AX_ROBOT_Stop();
+            vTaskSuspend(Robot_Task_Handle);
 						vTaskSuspend(Disp_Task_Handle);
 						
 						//电机速度设置为0
@@ -322,12 +363,13 @@ void Trivia_Task(void* parameter)
 		if(ax_imu_calibrate_flag > 0)
 		{
             //付零IMU校准变量
-			ax_imu_gyro_offset[0] = 0;
-			ax_imu_gyro_offset[1] = 0;
-			ax_imu_gyro_offset[2] = 0;
+			ax_imu_gyro_offset[0] = 0; gyro_sum[0]=0;
+			ax_imu_gyro_offset[1] = 0; gyro_sum[1]=0;
+			ax_imu_gyro_offset[2] = 0; gyro_sum[2]=0;
 			
 			//机器人任务挂起
-			vTaskSuspend(Robot_Task_Handle);
+			ax_robot_move_enable=0u; AX_ROBOT_Stop();
+            vTaskSuspend(Robot_Task_Handle);
 			
 			//蜂鸣器提示
 			AX_BEEP_On();
@@ -348,15 +390,15 @@ void Trivia_Task(void* parameter)
 				AX_MPU6050_GetGyroData(gyro_data);
 				
 				//计算偏差和
-				ax_imu_gyro_offset[0] += gyro_data[0];
-				ax_imu_gyro_offset[1] += gyro_data[1];
-				ax_imu_gyro_offset[2] += gyro_data[2]; 		
+				gyro_sum[0] += gyro_data[0];
+				gyro_sum[1] += gyro_data[1];
+				gyro_sum[2] += gyro_data[2];
 			}
 			
 			//计算平均偏差值
-			ax_imu_gyro_offset[0] = -ax_imu_gyro_offset[0]/10;
-			ax_imu_gyro_offset[1] = -ax_imu_gyro_offset[1]/10;
-			ax_imu_gyro_offset[2] = -ax_imu_gyro_offset[2]/10;
+			ax_imu_gyro_offset[0] = (int16_t)(-(gyro_sum[0]/10)>32767 ? 32767 : -(gyro_sum[0]/10));
+			ax_imu_gyro_offset[1] = (int16_t)(-(gyro_sum[1]/10)>32767 ? 32767 : -(gyro_sum[1]/10));
+			ax_imu_gyro_offset[2] = (int16_t)(-(gyro_sum[2]/10)>32767 ? 32767 : -(gyro_sum[2]/10));
 			
 			//关闭红灯
 			AX_LED_Red_Off();
@@ -375,7 +417,8 @@ void Trivia_Task(void* parameter)
 		if(ax_light_save_flag > 0)
 		{
 			//机器人任务挂起
-			vTaskSuspend(Robot_Task_Handle);
+			ax_robot_move_enable=0u; AX_ROBOT_Stop();
+            vTaskSuspend(Robot_Task_Handle);
 			
 			//更新数据
 			AX_EEPROM_WriteOneByte(0x20, R_Light.M);
@@ -442,7 +485,9 @@ void Trivia_Task(void* parameter)
 void Key_Task(void* parameter)
 {	
 	uint8_t  i;
-	int16_t  akm_offset;
+	#if (ROBOT_TYPE == ROBOT_AKM)
+    int16_t akm_offset;
+#endif
 	
 	while (1)
 	{		
@@ -583,7 +628,8 @@ void Key_Task(void* parameter)
 					AX_EEPROM_WriteOneByte(0x00, 0x00);
 					
 					//任务挂起
-					vTaskSuspend(Robot_Task_Handle);
+					ax_robot_move_enable=0u; AX_ROBOT_Stop();
+            vTaskSuspend(Robot_Task_Handle);
 					vTaskSuspend(Disp_Task_Handle);
 					
 					//蜂鸣器提示
